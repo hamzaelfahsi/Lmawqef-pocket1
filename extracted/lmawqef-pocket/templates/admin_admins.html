@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin - Admin Management{% endblock %}
+
+{% block content %}
+<style>.admin-main { margin-left: 260px; padding: 2rem; min-height: calc(100vh - var(--navbar-height)); background: var(--bg-body); }
+@media (max-width: 768px) { .admin-main { margin-left: 0; padding: 1rem; } }</style>
+
+<div class="admin-main">
+    <h1 style="font-size: 1.75rem; font-weight: 800; margin-bottom: 1.5rem;"><i class="fas fa-user-shield" style="color: var(--primary);"></i> Manage Admins</h1>
+    
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead><tr><th>Admin</th><th>Users</th><th>Services</th><th>Bookings</th><th>Annonces</th><th>Subs</th><th>Payments</th><th>Admins</th><th>Config</th></tr></thead>
+            <tbody>
+                {% for a in admins %}
+                {% set role = a.admin_role %}
+                <tr>
+                    <td><strong>{{ a.full_name }}</strong><br><small>{{ a.username }} | {{ a.email }}</small></td>
+                    {% if role %}
+                    <td>{% if role.can_manage_users %}<i class="fas fa-check-circle" style="color: var(--success);"></i>{% else %}<i class="fas fa-times-circle" style="color: var(--danger);"></i>{% endif %}</td>
+                    <td>{% if role.can_manage_services %}<i class="fas fa-check-circle" style="color: var(--success);"></i>{% else %}<i class="fas fa-times-circle" style="color: var(--danger);"></i>{% endif %}</td>
+                    <td>{% if role.can_manage_bookings %}<i class="fas fa-check-circle" style="color: var(--success);"></i>{% else %}<i class="fas fa-times-circle" style="color: var(--danger);"></i>{% endif %}</td>
+                    <td>{% if role.can_manage_annonces %}<i class="fas fa-check-circle" style="color: var(--success);"></i>{% else %}<i class="fas fa-times-circle" style="color: var(--danger);"></i>{% endif %}</td>
+                    <td>{% if role.can_manage_subscriptions %}<i class="fas fa-check-circle" style="color: var(--success);"></i>{% else %}<i class="fas fa-times-circle" style="color: var(--danger);"></i>{% endif %}</td>
+                    <td>{% if role.can_manage_payments %}<i class="fas fa-check-circle" style="color: var(--success);"></i>{% else %}<i class="fas fa-times-circle" style="color: var(--danger);"></i>{% endif %}</td>
+                    <td>{% if role.can_manage_admins %}<i class="fas fa-check-circle" style="color: var(--success);"></i>{% else %}<i class="fas fa-times-circle" style="color: var(--danger);"></i>{% endif %}</td>
+                    <td>{% if role.can_edit_config %}<i class="fas fa-check-circle" style="color: var(--success);"></i>{% else %}<i class="fas fa-times-circle" style="color: var(--danger);"></i>{% endif %}</td>
+                    {% else %}
+                    <td colspan="8" style="text-align: center;"><span style="color: var(--success);"><i class="fas fa-crown"></i> Super Admin (All Permissions)</span></td>
+                    {% endif %}
+                </tr>
+                <tr style="background: var(--gray-50);">
+                    <td colspan="9" style="padding: 1rem;">
+                        <form method="POST" action="{{ url_for('update_admin_permissions', id=a.id) }}" style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center;">
+                            <label class="checkbox-label"><input type="checkbox" name="can_manage_users" {% if role and role.can_manage_users %}checked{% endif %}> Users</label>
+                            <label class="checkbox-label"><input type="checkbox" name="can_manage_services" {% if role and role.can_manage_services %}checked{% endif %}> Services</label>
+                            <label class="checkbox-label"><input type="checkbox" name="can_manage_bookings" {% if role and role.can_manage_bookings %}checked{% endif %}> Bookings</label>
+                            <label class="checkbox-label"><input type="checkbox" name="can_manage_annonces" {% if role and role.can_manage_annonces %}checked{% endif %}> Annonces</label>
+                            <label class="checkbox-label"><input type="checkbox" name="can_manage_subscriptions" {% if role and role.can_manage_subscriptions %}checked{% endif %}> Subs</label>
+                            <label class="checkbox-label"><input type="checkbox" name="can_manage_payments" {% if role and role.can_manage_payments %}checked{% endif %}> Payments</label>
+                            <label class="checkbox-label"><input type="checkbox" name="can_manage_admins" {% if role and role.can_manage_admins %}checked{% endif %}> Admins</label>
+                            <label class="checkbox-label"><input type="checkbox" name="can_edit_config" {% if role and role.can_edit_config %}checked{% endif %}> Config</label>
+                            <button type="submit" class="btn btn-sm btn-primary"><i class="fas fa-save"></i> Save</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

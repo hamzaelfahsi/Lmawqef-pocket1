@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Admin WhatsApp{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div class="container">
+        <h1><i class="fab fa-whatsapp"></i> WhatsApp Business</h1>
+        <p>Manage templates and message logs</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="admin-actions" style="margin-bottom: 2rem;">
+            <a href="{{ url_for('admin_panel') }}" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Back to Admin</a>
+        </div>
+
+        <h2><i class="fas fa-file-alt"></i> Message Templates</h2>
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Slug</th>
+                        <th>Language</th>
+                        <th>Category</th>
+                        <th>Body</th>
+                        <th>Active</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in templates %}
+                    <tr>
+                        <td>{{ t.name }}</td>
+                        <td><code>{{ t.slug }}</code></td>
+                        <td>{{ t.language | upper }}</td>
+                        <td>{{ t.category }}</td>
+                        <td style="max-width: 300px;"><small>{{ t.body[:100] }}{% if t.body | length > 100 %}...{% endif %}</small></td>
+                        <td><i class="fas fa-{% if t.is_active %}check-circle text-success{% else %}times-circle text-danger{% endif %}"></i></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <h2 style="margin-top: 3rem;"><i class="fas fa-history"></i> Recent Message Logs</h2>
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Phone</th>
+                        <th>Template</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Sent At</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr>
+                        <td>{{ log.phone }}</td>
+                        <td>{{ log.template_name or 'N/A' }}</td>
+                        <td>{{ log.message_type | title }}</td>
+                        <td><span class="badge badge-{% if log.status == 'delivered' %}success{% elif log.status == 'sent' %}info{% elif log.status == 'failed' %}danger{% else %}warning{% endif %}">{{ log.status | title }}</span></td>
+                        <td>{{ log.sent_at.strftime('%d/%m %H:%M') if log.sent_at else 'Pending' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock %}

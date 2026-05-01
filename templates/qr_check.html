@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}QR Check-In{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div class="container">
+        <h1><i class="fas fa-qrcode"></i> QR Code Check-In</h1>
+        <p>Scan or generate QR codes for secure booking verification</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        {% if generated %}
+        <div style="text-align: center; max-width: 500px; margin: 0 auto;">
+            <div style="background: white; border-radius: 16px; padding: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+                <img src="{{ qr.qr_image_url }}" alt="QR Code" style="max-width: 300px; border-radius: 12px;">
+                <p style="margin-top: 1rem; font-family: monospace; font-size: 0.9rem; color: #64748b;">{{ qr.code }}</p>
+            </div>
+            <div style="margin-top: 1.5rem;">
+                <p style="color: #64748b; margin-bottom: 1rem;">Show this QR code to the client/worker to verify the booking</p>
+                <a href="{{ url_for('my_bookings') }}" class="btn btn-primary">Back to Bookings</a>
+            </div>
+        </div>
+        {% elif qr %}
+        <div style="text-align: center; max-width: 500px; margin: 0 auto;">
+            <div class="status-badge" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; border-radius: 50px; font-weight: 600; {% if qr.status == 'checked_in' %}background: #dcfce7; color: #166534;{% else %}background: #fef9c3; color: #854d0e;{% endif %}">
+                <i class="fas fa-{% if qr.status == 'checked_in' %}check-circle{% else %}clock{% endif %}"></i>
+                {{ qr.status | replace('_', ' ') | title }}
+            </div>
+            <div style="margin-top: 2rem;">
+                <h3>Booking #{{ booking.id }}</h3>
+                <p>{{ booking.service.title }}</p>
+                <p><i class="fas fa-user"></i> {{ booking.client.full_name }} <i class="fas fa-arrow-right"></i> {{ booking.worker.full_name }}</p>
+            </div>
+            {% if qr.checked_in_at %}
+            <p style="color: #64748b; margin-top: 1rem;">Checked in at {{ qr.checked_in_at.strftime('%d/%m/%Y %H:%M') }}</p>
+            {% endif %}
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 3rem;">
+            <i class="fas fa-qrcode" style="font-size: 4rem; color: #cbd5e1; margin-bottom: 1rem;"></i>
+            <h3>No QR Code</h3>
+            <p style="color: #64748b;">Generate a QR code from your bookings page</p>
+            <a href="{{ url_for('my_bookings') }}" class="btn btn-primary" style="margin-top: 1rem;">My Bookings</a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

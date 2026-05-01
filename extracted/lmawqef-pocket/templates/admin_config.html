@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin - Configuration{% endblock %}
+
+{% block content %}
+<style>.admin-main { margin-left: 260px; padding: 2rem; min-height: calc(100vh - var(--navbar-height)); background: var(--bg-body); }
+@media (max-width: 768px) { .admin-main { margin-left: 0; padding: 1rem; } }</style>
+
+<div class="admin-main">
+    <h1 style="font-size: 1.75rem; font-weight: 800; margin-bottom: 1.5rem;"><i class="fas fa-cogs" style="color: var(--primary);"></i> App Configuration</h1>
+    
+    <div class="card" style="padding: 2rem; max-width: 700px;">
+        <form method="POST" action="{{ url_for('admin_config') }}">
+            <h3 style="margin-bottom: 1.25rem;"><i class="fas fa-bullhorn" style="color: var(--primary);"></i> Annonce Settings</h3>
+            
+            <div class="form-row two-col">
+                <div class="form-group">
+                    <label><i class="fas fa-coins"></i> Price per Annonce (MAD)</label>
+                    <input type="number" name="annonce_price" class="form-input" value="{{ "%.0f"|format(config.annonce_price) }}" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-gift"></i> Free Announces for New Users</label>
+                    <input type="number" name="free_announces_new_user" class="form-input" value="{{ config.free_announces_new_user }}" required>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label><i class="fas fa-calendar"></i> Annonce Duration (days)</label>
+                <input type="number" name="annonce_duration_days" class="form-input" value="{{ config.annonce_duration_days }}" required>
+            </div>
+            
+            <h3 style="margin: 2rem 0 1.25rem;"><i class="fas fa-address-card" style="color: var(--primary);"></i> Contact Info</h3>
+            
+            <div class="form-row two-col">
+                <div class="form-group">
+                    <label><i class="fas fa-envelope"></i> Contact Email</label>
+                    <input type="email" name="contact_email" class="form-input" value="{{ config.contact_email }}">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-phone"></i> Contact Phone</label>
+                    <input type="text" name="contact_phone" class="form-input" value="{{ config.contact_phone }}">
+                </div>
+            </div>
+            
+            <div style="margin-top: 1.5rem;">
+                <button type="submit" class="btn btn-primary btn-lg"><i class="fas fa-save"></i> Save Configuration</button>
+            </div>
+        </form>
+    </div>
+    
+    <div class="card" style="padding: 2rem; margin-top: 2rem; max-width: 700px;">
+        <h3 style="margin-bottom: 1.25rem;"><i class="fas fa-info-circle" style="color: var(--primary);"></i> Current Configuration Summary</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div style="background: var(--gray-50); padding: 1rem; border-radius: var(--radius-lg);">
+                <span style="font-size: 0.8125rem; color: var(--text-muted); font-weight: 600;">ANNONCE PRICE</span>
+                <p style="font-size: 1.5rem; font-weight: 800; color: var(--primary); margin-top: 0.25rem;">{{ "%.0f"|format(config.annonce_price) }} MAD</p>
+            </div>
+            <div style="background: var(--gray-50); padding: 1rem; border-radius: var(--radius-lg);">
+                <span style="font-size: 0.8125rem; color: var(--text-muted); font-weight: 600;">FREE ANNOUNCES</span>
+                <p style="font-size: 1.5rem; font-weight: 800; color: var(--text-primary); margin-top: 0.25rem;">{{ config.free_announces_new_user }}</p>
+            </div>
+            <div style="background: var(--gray-50); padding: 1rem; border-radius: var(--radius-lg);">
+                <span style="font-size: 0.8125rem; color: var(--text-muted); font-weight: 600;">DURATION</span>
+                <p style="font-size: 1.5rem; font-weight: 800; color: var(--text-primary); margin-top: 0.25rem;">{{ config.annonce_duration_days }} days</p>
+            </div>
+            <div style="background: var(--gray-50); padding: 1rem; border-radius: var(--radius-lg);">
+                <span style="font-size: 0.8125rem; color: var(--text-muted); font-weight: 600;">LAST UPDATED</span>
+                <p style="font-size: 1.125rem; font-weight: 700; color: var(--text-primary); margin-top: 0.25rem;">{{ config.updated_at.strftime('%d %b %Y') }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

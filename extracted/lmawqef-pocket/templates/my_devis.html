@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}Mes Devis{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1><i class="fas fa-file-invoice"></i> Mes Devis</h1>
+        <p>Historique des devis generes</p>
+    </div>
+</div>
+
+<section class="section">
+    <div class="container" style="max-width: 900px;">
+        <div style="margin-bottom: 1.5rem;">
+            <a href="{{ url_for('create_devis') }}" class="btn btn-primary"><i class="fas fa-plus"></i> Nouveau Devis</a>
+        </div>
+        {% if devis_list %}
+        <div class="bookings-list">
+            {% for d in devis_list %}
+            <div class="booking-card">
+                <div class="booking-header">
+                    <div class="booking-service">
+                        <h3>{{ d.title }}</h3>
+                        <span class="service-category">Pour: {{ d.client_name }}</span>
+                    </div>
+                    <span class="booking-status status-{% if d.status == 'draft' %}pending{% elif d.status == 'sent' %}accepted{% else %}completed{% endif %}">{{ d.status|upper }}</span>
+                </div>
+                <div class="booking-body">
+                    <div class="booking-meta">
+                        <span><i class="fas fa-envelope"></i> {{ d.client_email }}</span>
+                        <span><i class="fas fa-money-bill"></i> {{ "%.2f"|format(d.total_ttc) }} MAD TTC</span>
+                        <span><i class="fas fa-calendar"></i> {{ d.created_at.strftime('%d %b %Y') }}</span>
+                        {% if d.valid_until %}<span><i class="fas fa-hourglass-half"></i> Valide jusqu'au {{ d.valid_until.strftime('%d %b') }}</span>{% endif %}
+                    </div>
+                </div>
+                <div class="booking-actions">
+                    <a href="{{ url_for('devis_pdf', id=d.id) }}" class="btn btn-sm btn-primary" target="_blank"><i class="fas fa-file-pdf"></i> Voir PDF</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-file-invoice"></i>
+            <h3>Aucun devis</h3>
+            <p>Creez votre premier devis professionnel</p>
+            <a href="{{ url_for('create_devis') }}" class="btn btn-primary mt-4"><i class="fas fa-plus"></i> Creer un Devis</a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

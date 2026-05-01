@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block title %}Publier une Annonce{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1><i class="fas fa-bullhorn"></i> Publier une Annonce</h1>
+        <p>Post your recruitment, service request or service offer</p>
+    </div>
+</div>
+
+<section class="section">
+    <div class="container" style="max-width: 700px;">
+        <div class="card" style="padding: 2rem;">
+            {% if user.can_post_free_announce() %}
+            <div style="background: var(--success-light); color: #065f46; padding: 1rem; border-radius: var(--radius-lg); margin-bottom: 1.5rem; font-weight: 600;">
+                <i class="fas fa-gift"></i> You have <strong>{{ config.free_announces_new_user - user.free_announces_used }}</strong> free announces remaining!
+            </div>
+            {% elif user.can_post_monthly_announce() %}
+            <div style="background: var(--info-light); color: #1e40af; padding: 1rem; border-radius: var(--radius-lg); margin-bottom: 1.5rem; font-weight: 600;">
+                <i class="fas fa-crown"></i> Subscription active: <strong>{{ user.get_monthly_annonce_limit() - user.announces_month_used }}</strong> announces left this month
+            </div>
+            {% else %}
+            <div style="background: var(--warning-light); color: #92400e; padding: 1rem; border-radius: var(--radius-lg); margin-bottom: 1.5rem; font-weight: 600;">
+                <i class="fas fa-coins"></i> Each announce costs <strong>{{ "%.0f"|format(config.annonce_price) }} MAD</strong>. New users get {{ config.free_announces_new_user }} free announces.
+            </div>
+            {% endif %}
+            
+            <form method="POST" action="{{ url_for('add_annonce') }}" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label><i class="fas fa-heading"></i> Title *</label>
+                    <input type="text" name="title" class="form-input" required placeholder="e.g. Looking for plumber in Casablanca">
+                </div>
+                
+                <div class="form-group">
+                    <label><i class="fas fa-tag"></i> Type *</label>
+                    <select name="type" class="form-select" required>
+                        <option value="">Select type</option>
+                        <option value="recrutement">Recrutement de profils</option>
+                        <option value="demande_service">Demande de service</option>
+                        <option value="offre_service">Offre de service</option>
+                    </select>
+                </div>
+                
+                <div class="form-row two-col">
+                    <div class="form-group">
+                        <label><i class="fas fa-folder"></i> Category</label>
+                        <select name="category" class="form-select">
+                            <option value="">Select category</option>
+                            {% for cat in categories %}
+                            <option value="{{ cat }}">{{ cat }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-map-marker-alt"></i> City</label>
+                        <select name="city" class="form-select">
+                            <option value="">Select city</option>
+                            {% for city in cities %}
+                            <option value="{{ city }}">{{ city }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label><i class="fas fa-edit"></i> Description *</label>
+                    <textarea name="description" class="form-textarea" required rows="5" placeholder="Describe your announcement in detail..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label><i class="fas fa-money-bill"></i> Price (optional)</label>
+                    <input type="number" name="price" class="form-input" placeholder="Amount in MAD">
+                </div>
+                
+                <div class="form-group">
+                    <label><i class="fas fa-image"></i> Image (optional)</label>
+                    <div class="upload-area" onclick="document.getElementById('imageFile').click()">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Click to upload an image</p>
+                        <small>PNG, JPG up to 16MB</small>
+                    </div>
+                    <input type="file" name="image" id="imageFile" accept="image/*" style="display:none;" onchange="previewImage(this)">
+                    <div id="imagePreview" class="image-preview-grid" style="display:none;"></div>
+                </div>
+                
+                <div class="form-actions" style="display:flex; gap: 1rem;">
+                    <button type="submit" class="btn btn-primary btn-lg btn-block">
+                        <i class="fas fa-paper-plane"></i> 
+                        {% if user.can_post_free_announce() or user.can_post_monthly_announce() %}
+                            Publish Free
+                        {% else %}
+                            Pay {{ "%.0f"|format(config.annonce_price) }} MAD & Publish
+                        {% endif %}
+                    </button>
+                    <a href="{{ url_for('annonces') }}" class="btn btn-ghost btn-lg">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+
+<script>
+function previewImage(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('imagePreview');
+            preview.innerHTML = '<div class="image-preview-item"><img src="' + e.target.result + '"></div>';
+            preview.style.display = 'grid';
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>
+{% endblock %}

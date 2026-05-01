@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin - Levels{% endblock %}
+
+{% block content %}
+<style>.admin-main { margin-left: 260px; padding: 2rem; min-height: calc(100vh - 72px); background: var(--bg-body); }
+@media (max-width: 768px) { .admin-main { margin-left: 0; padding: 1rem; } }</style>
+
+<div class="admin-main">
+    <h1 style="font-size: 1.75rem; font-weight: 800; margin-bottom: 1.5rem;"><i class="fas fa-layer-group" style="color: var(--primary);"></i> Gamification - Levels</h1>
+
+    <div class="card" style="padding: 2rem; margin-bottom: 2rem;">
+        <h3 style="margin-bottom: 1.25rem;"><i class="fas fa-plus-circle" style="color: var(--primary);"></i> Add New Level</h3>
+        <form method="POST" action="{{ url_for('admin_levels') }}">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                <div class="form-group"><label>Name</label><input type="text" name="name" class="form-input" required></div>
+                <div class="form-group"><label>Min Points</label><input type="number" name="min_points" class="form-input" required></div>
+                <div class="form-group"><label>Max Points</label><input type="number" name="max_points" class="form-input" placeholder="Leave empty for infinite"></div>
+                <div class="form-group"><label>Icon (fa-*)</label><input type="text" name="icon" class="form-input" value="fa-star"></div>
+                <div class="form-group"><label>Color</label><input type="color" name="color" class="form-input" value="#0d9488" style="height: 44px;"></div>
+            </div>
+            <div class="form-group"><label>Benefits</label><input type="text" name="benefits" class="form-input" placeholder="e.g. Priority listing, Analytics access"></div>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i> Add Level</button>
+        </form>
+    </div>
+
+    <h3 style="margin-bottom: 1.25rem;">Level Hierarchy</h3>
+    <div style="display: flex; flex-direction: column; gap: 0;">
+        {% for level in levels %}
+        <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem 1.5rem; background: white; border: 1px solid var(--border-light); {% if not loop.last %}border-bottom: none;{% endif %} {% if loop.first %}border-radius: var(--radius-xl) var(--radius-xl) 0 0;{% elif loop.last %}border-radius: 0 0 var(--radius-xl) var(--radius-xl);{% endif %}">
+            <div style="width: 48px; height: 48px; border-radius: 50%; background: {{ level.color }}20; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; color: {{ level.color }}; flex-shrink: 0;">
+                <i class="fas {{ level.icon }}"></i>
+            </div>
+            <div style="flex: 1;">
+                <h4 style="font-size: 1.0625rem; font-weight: 700;">{{ level.name }}</h4>
+                <p style="font-size: 0.8125rem; color: var(--text-muted);">{{ level.min_points }} {% if level.max_points %}- {{ level.max_points }}{% else %}+{% endif %} points | {{ level.benefits or 'No special benefits' }}</p>
+            </div>
+            <span style="font-size: 0.875rem; font-weight: 700; color: {{ level.color }};">{{ level.min_points }}+ pts</span>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

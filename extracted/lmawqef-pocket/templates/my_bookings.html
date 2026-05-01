@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}My Bookings{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div class="container">
+        <h1><i class="fas fa-calendar-check"></i> My Bookings</h1>
+        <p>Manage your service requests</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="bookings-list">
+            {% for booking in bookings %}
+            <div class="booking-card">
+                <div class="booking-header">
+                    <div class="booking-service">
+                        <h3><a href="{{ url_for('service_detail', id=booking.service.id) }}">{{ booking.service.title }}</a></h3>
+                        <span class="service-category">{{ booking.service.category }}</span>
+                    </div>
+                    <span class="booking-status status-{{ booking.status }}">
+                        {% if booking.status == 'pending' %}
+                            <i class="fas fa-clock"></i> Pending
+                        {% elif booking.status == 'accepted' %}
+                            <i class="fas fa-check"></i> Accepted
+                        {% elif booking.status == 'rejected' %}
+                            <i class="fas fa-times"></i> Rejected
+                        {% elif booking.status == 'completed' %}
+                            <i class="fas fa-check-double"></i> Completed
+                        {% endif %}
+                    </span>
+                </div>
+
+                <div class="booking-body">
+                    <p class="booking-message"><i class="fas fa-comment"></i> "{{ booking.message }}"</p>
+                    <div class="booking-meta">
+                        {% if session.user_type == 'client' %}
+                        <span><i class="fas fa-user"></i> Worker: <a href="{{ url_for('profile', id=booking.service.worker.id) }}">{{ booking.service.worker.full_name }}</a></span>
+                        {% else %}
+                        <span><i class="fas fa-user"></i> Client: <a href="{{ url_for('profile', id=booking.client.id) }}">{{ booking.client.full_name }}</a></span>
+                        {% endif %}
+                        <span><i class="fas fa-map-marker-alt"></i> {{ booking.service.city }}</span>
+                        <span><i class="fas fa-money-bill-wave"></i> {{ "%.0f"|format(booking.service.price) }} MAD</span>
+                        <span><i class="fas fa-calendar"></i> {{ booking.created_at.strftime('%B %d, %Y') }}</span>
+                    </div>
+                </div>
+
+                {% if session.user_type == 'worker' and booking.status == 'pending' %}
+                <div class="booking-actions">
+                    <form action="{{ url_for('update_booking', id=booking.id) }}" method="POST" class="inline-form">
+                        <input type="hidden" name="status" value="accepted">
+                        <button type="submit" class="btn btn-success btn-sm">
+                            <i class="fas fa-check"></i> Accept
+                        </button>
+                    </form>
+                    <form action="{{ url_for('update_booking', id=booking.id) }}" method="POST" class="inline-form">
+                        <input type="hidden" name="status" value="rejected">
+                        <button type="submit" class="btn btn-danger btn-sm">
+                            <i class="fas fa-times"></i> Reject
+                        </button>
+                    </form>
+                </div>
+                {% elif session.user_type == 'worker' and booking.status == 'accepted' %}
+                <div class="booking-actions">
+                    <form action="{{ url_for('update_booking', id=booking.id) }}" method="POST" class="inline-form">
+                        <input type="hidden" name="status" value="completed">
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="fas fa-check-double"></i> Mark Completed
+                        </button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="empty-state full-width">
+                <i class="fas fa-inbox"></i>
+                <h3>No bookings yet</h3>
+                <p>
+                    {% if session.user_type == 'client' %}
+                    Browse services and book a professional to get started.
+                    {% else %}
+                    Clients will appear here when they book your services.
+                    {% endif %}
+                </p>
+                {% if session.user_type == 'client' %}
+                <a href="{{ url_for('services') }}" class="btn btn-primary">
+                    <i class="fas fa-search"></i> Browse Services
+                </a>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

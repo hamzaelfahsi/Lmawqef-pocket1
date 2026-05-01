@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ annonce.title }}{% endblock %}
+
+{% block content %}
+<div class="annonce-detail-header">
+    <div class="container">
+        <span class="annonce-type-badge {{ annonce.type }}" style="margin-bottom: 1rem; display: inline-flex;">
+            {% if annonce.type == 'recrutement' %}
+                <i class="fas fa-user-plus"></i> Recrutement
+            {% elif annonce.type == 'demande_service' %}
+                <i class="fas fa-hand-holding"></i> Demande de service
+            {% else %}
+                <i class="fas fa-briefcase"></i> Offre de service
+            {% endif %}
+        </span>
+        <h1>{{ annonce.title }}</h1>
+        <div class="annonce-detail-meta">
+            {% if annonce.category %}<span><i class="fas fa-folder"></i> {{ annonce.category }}</span>{% endif %}
+            {% if annonce.city %}<span><i class="fas fa-map-marker-alt"></i> {{ annonce.city }}</span>{% endif %}
+            <span><i class="fas fa-calendar"></i> {{ annonce.created_at.strftime('%d %b %Y') }}</span>
+            <span><i class="fas fa-eye"></i> {{ annonce.views_count }} views</span>
+            {% if annonce.price %}<span><i class="fas fa-money-bill"></i> {{ "%.0f"|format(annonce.price) }} MAD</span>{% endif %}
+        </div>
+    </div>
+</div>
+
+<section class="section" style="padding-top: 0;">
+    <div class="container">
+        <div class="detail-grid">
+            <div class="detail-main">
+                <div class="annonce-detail-body">
+                    {% if annonce.image %}
+                    <div style="margin: -2rem -2rem 1.5rem -2rem; height: 300px; overflow: hidden; border-radius: var(--radius-xl) var(--radius-xl) 0 0;">
+                        <img src="{{ url_for('static', filename=annonce.image) }}" alt="" style="width:100%;height:100%;object-fit:cover;">
+                    </div>
+                    {% endif %}
+                    
+                    <h3 style="margin-bottom: 1rem;"><i class="fas fa-align-left" style="color: var(--primary); margin-right: 0.5rem;"></i>Description</h3>
+                    <p style="font-size: 1rem; line-height: 1.8; color: var(--text-secondary);">{{ annonce.description }}</p>
+                    
+                    <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-light);">
+                        <h4 style="font-size: 1rem; font-weight: 700; margin-bottom: 1rem;">Partager cette annonce</h4>
+                        <div class="share-buttons">
+                            <a href="#" class="share-btn facebook"><i class="fab fa-facebook-f"></i></a>
+                            <a href="#" class="share-btn twitter"><i class="fab fa-twitter"></i></a>
+                            <a href="#" class="share-btn whatsapp"><i class="fab fa-whatsapp"></i></a>
+                            <a href="#" class="share-btn email"><i class="fas fa-envelope"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="detail-sidebar">
+                <div class="sidebar-card">
+                    <h3><i class="fas fa-user"></i> Auteur</h3>
+                    <div style="text-align: center;">
+                        <div class="worker-avatar-large" style="margin: 0 auto 1rem;">
+                            {% if annonce.author.avatar and annonce.author.avatar != 'default-avatar.png' %}
+                                <img src="{{ url_for('static', filename=annonce.author.avatar) }}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
+                            {% else %}
+                                {{ annonce.author.full_name[0] }}
+                            {% endif %}
+                        </div>
+                        <h4>{{ annonce.author.full_name }}</h4>
+                        <p style="font-size: 0.875rem; color: var(--text-muted);">
+                            <i class="fas fa-map-marker-alt"></i> {{ annonce.author.city }}
+                        </p>
+                        {% if annonce.author.user_type == 'entreprise' %}
+                        <span class="sub-badge active">Entreprise</span>
+                        {% elif annonce.author.has_active_subscription() %}
+                        <span class="sub-badge active">Abonne</span>
+                        {% endif %}
+                        <div style="margin-top: 1rem;">
+                            <a href="{{ url_for('profile', id=annonce.author.id) }}" class="btn btn-outline btn-sm btn-block">Voir le profil</a>
+                        </div>
+                        {% if session.user_id and session.user_id != annonce.author.id %}
+                        <div style="margin-top: 0.5rem;">
+                            <a href="{{ url_for('messages', with=annonce.author.id) }}" class="btn btn-primary btn-sm btn-block">
+                                <i class="fas fa-comment-dots"></i> Contacter
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                {% if annonce.price %}
+                <div class="sidebar-card" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white;">
+                    <h3 style="color: white;"><i class="fas fa-tag"></i> Budget</h3>
+                    <div style="text-align: center;">
+                        <span style="font-size: 2.5rem; font-weight: 900;">{{ "%.0f"|format(annonce.price) }}</span>
+                        <span style="font-size: 1.125rem;">MAD</span>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="sidebar-card">
+                    <h3><i class="fas fa-shield-alt"></i> Securite</h3>
+                    <p style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.6;">
+                        <i class="fas fa-check-circle" style="color: var(--success);"></i> Annonce verifiee<br>
+                        <i class="fas fa-check-circle" style="color: var(--success);"></i> Paiement securise<br>
+                        <i class="fas fa-check-circle" style="color: var(--success);"></i> Support 24/7
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

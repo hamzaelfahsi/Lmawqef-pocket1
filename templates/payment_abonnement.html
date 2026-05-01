@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}Paiement Abonnement{% endblock %}
+
+{% block content %}
+<section class="section" style="padding-top: 2rem;">
+    <div class="container" style="max-width: 500px;">
+        <div class="payment-card">
+            <div class="payment-icon"><i class="fas fa-crown"></i></div>
+            <h2>Abonnement {{ plan.name }}</h2>
+            <p style="color: var(--text-muted);">{{ plan.description }}</p>
+            <div class="payment-amount">{{ "%.0f"|format(plan.price) }} <span style="font-size:1.25rem;">MAD</span></div>
+            <p style="color: var(--text-muted); font-size: 0.9375rem;">{{ plan.duration_days }} jours | {{ plan.annonce_limit }} annonces/mois</p>
+            
+            <div class="payment-methods">
+                <div class="payment-method active">
+                    <i class="fas fa-credit-card"></i>
+                    <div><strong>Carte Bancaire</strong><p style="margin:0;font-size:0.8125rem;color:var(--text-muted);">Visa, Mastercard</p></div>
+                </div>
+                <div class="payment-method">
+                    <i class="fas fa-mobile-alt"></i>
+                    <div><strong>Paiement Mobile</strong><p style="margin:0;font-size:0.8125rem;color:var(--text-muted);">Inwi, Orange Money</p></div>
+                </div>
+            </div>
+            
+            <form method="POST" action="{{ url_for('process_payment') }}">
+                <input type="hidden" name="type" value="abonnement">
+                <input type="hidden" name="plan_id" value="{{ plan.id }}">
+                <button type="submit" class="btn btn-primary btn-lg btn-block" style="margin-top: 1rem;">
+                    <i class="fas fa-lock"></i> Payer & Activer
+                </button>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}

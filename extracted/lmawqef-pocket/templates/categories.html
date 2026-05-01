@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Categories{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div class="container">
+        <h1><i class="fas fa-th-large"></i> Service Categories</h1>
+        <p>Browse all available service categories</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="categories-grid large">
+            {% for category, count in category_counts.items() %}
+            <a href="{{ url_for('services', category=category) }}" class="category-card large">
+                <div class="category-icon large">
+                    {% if 'IT' in category %}<i class="fas fa-laptop-code"></i>
+                    {% elif 'Construction' in category %}<i class="fas fa-hard-hat"></i>
+                    {% elif 'Cleaning' in category %}<i class="fas fa-broom"></i>
+                    {% elif 'Transport' in category %}<i class="fas fa-truck"></i>
+                    {% elif 'Plumbing' in category %}<i class="fas fa-wrench"></i>
+                    {% elif 'Carpentry' in category %}<i class="fas fa-hammer"></i>
+                    {% elif 'Painting' in category %}<i class="fas fa-paint-roller"></i>
+                    {% elif 'Gardening' in category %}<i class="fas fa-leaf"></i>
+                    {% elif 'Automotive' in category %}<i class="fas fa-car"></i>
+                    {% elif 'Education' in category %}<i class="fas fa-graduation-cap"></i>
+                    {% elif 'Health' in category %}<i class="fas fa-heartbeat"></i>
+                    {% elif 'Photography' in category %}<i class="fas fa-camera"></i>
+                    {% elif 'Legal' in category %}<i class="fas fa-balance-scale"></i>
+                    {% elif 'Marketing' in category %}<i class="fas fa-bullhorn"></i>
+                    {% else %}<i class="fas fa-tools"></i>
+                    {% endif %}
+                </div>
+                <h3>{{ category }}</h3>
+                <p class="category-count">{{ count }} service{{ 's' if count != 1 else '' }}</p>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

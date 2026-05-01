@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin - Commissions{% endblock %}
+
+{% block content %}
+<style>.admin-main { margin-left: 260px; padding: 2rem; min-height: calc(100vh - 72px); background: var(--bg-body); }
+@media (max-width: 768px) { .admin-main { margin-left: 0; padding: 1rem; } }</style>
+
+<div class="admin-main">
+    <h1 style="font-size: 1.75rem; font-weight: 800; margin-bottom: 1.5rem;"><i class="fas fa-percentage" style="color: var(--primary);"></i> Commissions Management</h1>
+
+    <div class="admin-stats-row" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 2rem;">
+        <div class="admin-stat-card" style="background: linear-gradient(135deg, var(--warning), #d97706); color: white;">
+            <div class="label" style="color: rgba(255,255,255,0.8);">Pending</div>
+            <div class="value" style="color: white;">{{ "%.0f"|format(total_pending) }} MAD</div>
+        </div>
+        <div class="admin-stat-card" style="background: linear-gradient(135deg, var(--info), #2563eb); color: white;">
+            <div class="label" style="color: rgba(255,255,255,0.8);">Due</div>
+            <div class="value" style="color: white;">{{ "%.0f"|format(total_due) }} MAD</div>
+        </div>
+        <div class="admin-stat-card" style="background: linear-gradient(135deg, var(--success), #059669); color: white;">
+            <div class="label" style="color: rgba(255,255,255,0.8);">Paid</div>
+            <div class="value" style="color: white;">{{ "%.0f"|format(total_paid) }} MAD</div>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr><th>ID</th><th>Worker</th><th>Booking</th><th>Amount</th><th>Rate</th><th>Status</th><th>Date</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+                {% for c in commissions %}
+                <tr>
+                    <td>{{ c.id }}</td>
+                    <td>{{ c.worker_comm.full_name }}</td>
+                    <td>#{{ c.booking_id }}</td>
+                    <td style="font-weight: 700; color: var(--primary);">{{ "%.2f"|format(c.amount) }} MAD</td>
+                    <td>{{ c.rate_percent }}%</td>
+                    <td><span class="status-badge {% if c.status == 'paid' %}online{% elif c.status == 'due' %}free{% else %}offline{% endif %}">{{ c.status }}</span></td>
+                    <td>{{ c.created_at.strftime('%d %b %Y') }}</td>
+                    <td>
+                        {% if c.status in ['pending', 'due'] %}
+                        <form action="{{ url_for('pay_commission', id=c.id) }}" method="POST" style="display: inline;">
+                            <button type="submit" class="btn btn-sm btn-success"><i class="fas fa-check"></i> Pay</button>
+                        </form>
+                        {% else %}
+                        <span style="font-size: 0.8125rem; color: var(--text-muted);">{{ c.paid_at.strftime('%d %b') if c.paid_at else '-' }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

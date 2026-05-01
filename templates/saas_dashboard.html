@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}{{ org.name }} Dashboard{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div class="container">
+        <h1><i class="fas fa-building"></i> {{ org.name }}</h1>
+        <p>Organization Dashboard — Plan: {{ org.plan | title }} | Status: {{ org.status | title }}</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon blue"><i class="fas fa-users"></i></div>
+                <div class="stat-info">
+                    <span class="stat-value">{{ org_users | length }}</span>
+                    <span class="stat-label">Members</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon green"><i class="fas fa-briefcase"></i></div>
+                <div class="stat-info">
+                    <span class="stat-value">{{ org_services | length }}</span>
+                    <span class="stat-label">Services</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon orange"><i class="fas fa-calendar"></i></div>
+                <div class="stat-info">
+                    <span class="stat-value">{{ org.trial_ends_at.strftime('%d %b') if org.trial_ends_at else 'N/A' }}</span>
+                    <span class="stat-label">Trial Ends</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-header">
+            <h2><i class="fas fa-users"></i> Team Members</h2>
+        </div>
+        <div class="workers-grid">
+            {% for u in org_users %}
+            <div class="worker-card compact">
+                <div class="worker-header">
+                    <div class="worker-avatar">{{ u.full_name[0] }}</div>
+                    <div class="worker-info">
+                        <h3>{{ u.full_name }}</h3>
+                        <div class="worker-meta">
+                            <span>{{ u.user_type | title }}</span>
+                            <span>{{ u.city }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="section-header">
+            <h2><i class="fas fa-briefcase"></i> Organization Services</h2>
+        </div>
+        <div class="services-grid">
+            {% for svc in org_services %}
+            <div class="service-card">
+                <div class="service-header">
+                    <h3>{{ svc.title }}</h3>
+                    <span class="service-price">{{ svc.price }} MAD</span>
+                </div>
+                <p class="service-desc">{{ svc.description[:100] }}...</p>
+                <div class="service-meta">
+                    <span><i class="fas fa-map-marker-alt"></i> {{ svc.city }}</span>
+                    <span><i class="fas fa-eye"></i> {{ svc.views }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

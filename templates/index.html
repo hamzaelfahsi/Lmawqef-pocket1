@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+        <h1 class="hero-title">Find Skilled Workers <span class="highlight">in Morocco</span></h1>
+        <p class="hero-subtitle">Connect with trusted professionals for IT, construction, cleaning, transport, and more services across Morocco.</p>
+
+        <div class="hero-search">
+            <form action="{{ url_for('services') }}" method="GET">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" name="search" placeholder="What service do you need?" class="search-input">
+                </div>
+                <div class="search-box">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <select name="city" class="search-select">
+                        <option value="">All Cities</option>
+                        {% for city in cities %}
+                        <option value="{{ city }}">{{ city }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-search"></i> Search
+                </button>
+            </form>
+        </div>
+
+        <div class="hero-stats">
+            <div class="stat-item">
+                <span class="stat-number">{{ stats.workers }}</span>
+                <span class="stat-label">Workers</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">{{ stats.clients }}</span>
+                <span class="stat-label">Clients</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">{{ stats.services }}</span>
+                <span class="stat-label">Services</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">{{ stats.bookings }}</span>
+                <span class="stat-label">Bookings</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Categories Section -->
+<section class="section categories-section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">Popular Categories</h2>
+            <p class="section-subtitle">Browse services by category</p>
+        </div>
+
+        <div class="categories-grid">
+            <a href="{{ url_for('services', category='IT & Technology') }}" class="category-card">
+                <div class="category-icon"><i class="fas fa-laptop-code"></i></div>
+                <h3>IT & Technology</h3>
+                <p>Web development, IT support, networking</p>
+            </a>
+            <a href="{{ url_for('services', category='Construction & Renovation') }}" class="category-card">
+                <div class="category-icon"><i class="fas fa-hard-hat"></i></div>
+                <h3>Construction</h3>
+                <p>Building, renovation, repairs</p>
+            </a>
+            <a href="{{ url_for('services', category='Cleaning & Housekeeping') }}" class="category-card">
+                <div class="category-icon"><i class="fas fa-broom"></i></div>
+                <h3>Cleaning</h3>
+                <p>Home cleaning, office cleaning</p>
+            </a>
+            <a href="{{ url_for('services', category='Transport & Logistics') }}" class="category-card">
+                <div class="category-icon"><i class="fas fa-truck"></i></div>
+                <h3>Transport</h3>
+                <p>Moving, delivery, logistics</p>
+            </a>
+            <a href="{{ url_for('services', category='Plumbing & Electrical') }}" class="category-card">
+                <div class="category-icon"><i class="fas fa-wrench"></i></div>
+                <h3>Plumbing</h3>
+                <p>Plumbing, electrical work</p>
+            </a>
+            <a href="{{ url_for('services', category='Photography & Events') }}" class="category-card">
+                <div class="category-icon"><i class="fas fa-camera"></i></div>
+                <h3>Photography</h3>
+                <p>Events, portraits, video</p>
+            </a>
+            <a href="{{ url_for('services', category='Education & Tutoring') }}" class="category-card">
+                <div class="category-icon"><i class="fas fa-graduation-cap"></i></div>
+                <h3>Education</h3>
+                <p>Tutoring, language lessons</p>
+            </a>
+            <a href="{{ url_for('services', category='Health & Wellness') }}" class="category-card">
+                <div class="category-icon"><i class="fas fa-heartbeat"></i></div>
+                <h3>Health</h3>
+                <p>Fitness, wellness, care</p>
+            </a>
+        </div>
+
+        <div class="text-center mt-4">
+            <a href="{{ url_for('categories_page') }}" class="btn btn-outline">View All Categories</a>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Services -->
+<section class="section featured-section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">Featured Services</h2>
+            <p class="section-subtitle">Discover top-rated services from our professionals</p>
+        </div>
+
+        <div class="services-grid">
+            {% for service in featured_services %}
+            <div class="service-card">
+                <div class="service-image">
+                    <div class="service-image-placeholder">
+                        <i class="fas fa-briefcase"></i>
+                    </div>
+                    <span class="service-category">{{ service.category }}</span>
+                </div>
+                <div class="service-content">
+                    <h3 class="service-title">{{ service.title }}</h3>
+                    <p class="service-desc">{{ service.description[:100] }}{% if service.description|length > 100 %}...{% endif %}</p>
+                    <div class="service-meta">
+                        <span class="service-city"><i class="fas fa-map-marker-alt"></i> {{ service.city }}</span>
+                        <span class="service-price">{{ "%.0f"|format(service.price) }} MAD</span>
+                    </div>
+                    <div class="service-footer">
+                        <div class="service-worker">
+                            <div class="worker-avatar-small">{{ service.worker.full_name[0] }}</div>
+                            <span>{{ service.worker.full_name }}</span>
+                        </div>
+                        <div class="worker-rating">
+                            {% set rating = service.worker.average_rating() %}
+                            {% for i in range(1, 6) %}
+                                {% if i <= rating %}
+                                    <i class="fas fa-star"></i>
+                                {% elif i - 0.5 <= rating %}
+                                    <i class="fas fa-star-half-alt"></i>
+                                {% else %}
+                                    <i class="far fa-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                            <span>({{ service.worker.review_count() }})</span>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('service_detail', id=service.id) }}" class="btn btn-primary btn-block">View Details</a>
+                </div>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <p>No services available yet. Be the first to add one!</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="text-center mt-4">
+            <a href="{{ url_for('services') }}" class="btn btn-outline">View All Services</a>
+        </div>
+    </div>
+</section>
+
+<!-- Top Workers -->
+<section class="section workers-section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">Top Rated Workers</h2>
+            <p class="section-subtitle">Meet our most trusted professionals</p>
+        </div>
+
+        <div class="workers-grid">
+            {% for worker in top_workers %}
+            <div class="worker-card">
+                <div class="worker-avatar">{{ worker.full_name[0] }}</div>
+                <h3 class="worker-name">{{ worker.full_name }}</h3>
+                <p class="worker-city"><i class="fas fa-map-marker-alt"></i> {{ worker.city }}</p>
+                <div class="worker-rating">
+                    {% set rating = worker.average_rating() %}
+                    {% for i in range(1, 6) %}
+                        {% if i <= rating %}
+                            <i class="fas fa-star"></i>
+                        {% elif i - 0.5 <= rating %}
+                            <i class="fas fa-star-half-alt"></i>
+                        {% else %}
+                            <i class="far fa-star"></i>
+                        {% endif %}
+                    {% endfor %}
+                    <span>{{ rating }} ({{ worker.review_count() }} reviews)</span>
+                </div>
+                <p class="worker-skills">{{ worker.skills[:60] if worker.skills else 'Professional services' }}{% if worker.skills and worker.skills|length > 60 %}...{% endif %}</p>
+                <a href="{{ url_for('profile', id=worker.id) }}" class="btn btn-outline btn-sm">View Profile</a>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-users"></i>
+                <p>No workers registered yet.</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="text-center mt-4">
+            <a href="{{ url_for('workers') }}" class="btn btn-outline">View All Workers</a>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="section cta-section">
+    <div class="container">
+        <div class="cta-card">
+            <div class="cta-content">
+                <h2>Are You a Skilled Professional?</h2>
+                <p>Join thousands of workers on Lmawqef Pocket and start getting clients today. It's free to register!</p>
+                <a href="{{ url_for('register') }}" class="btn btn-white btn-lg">
+                    <i class="fas fa-user-plus"></i> Join as Worker
+                </a>
+            </div>
+            <div class="cta-image">
+                <i class="fas fa-handshake"></i>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works -->
+<section class="section how-it-works">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">How It Works</h2>
+            <p class="section-subtitle">Simple steps to get started</p>
+        </div>
+
+        <div class="steps-grid">
+            <div class="step-card">
+                <div class="step-number">1</div>
+                <div class="step-icon"><i class="fas fa-user-plus"></i></div>
+                <h3>Register</h3>
+                <p>Create your account as a client or worker in just a few clicks.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number">2</div>
+                <div class="step-icon"><i class="fas fa-search"></i></div>
+                <h3>Find or List</h3>
+                <p>Search for services or list your skills to attract clients.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number">3</div>
+                <div class="step-icon"><i class="fas fa-handshake"></i></div>
+                <h3>Connect</h3>
+                <p>Contact professionals or receive booking requests.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number">4</div>
+                <div class="step-icon"><i class="fas fa-star"></i></div>
+                <h3>Review</h3>
+                <p>Rate and review to build trust in the community.</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

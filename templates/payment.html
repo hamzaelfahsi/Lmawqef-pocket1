@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Paiement{% endblock %}
+
+{% block content %}
+<section class="section" style="padding-top: 2rem;">
+    <div class="container" style="max-width: 500px;">
+        <div class="payment-card">
+            <div class="payment-icon"><i class="fas fa-credit-card"></i></div>
+            <h2>Paiement Annonce</h2>
+            <p style="color: var(--text-muted);">{{ annonce.title }}</p>
+            <div class="payment-amount">{{ "%.0f"|format(amount) }} <span style="font-size:1.25rem;">MAD</span></div>
+            
+            <div class="payment-methods">
+                <div class="payment-method active">
+                    <i class="fas fa-credit-card"></i>
+                    <div>
+                        <strong>Carte Bancaire</strong>
+                        <p style="margin:0;font-size:0.8125rem;color:var(--text-muted);">Visa, Mastercard, CMI</p>
+                    </div>
+                </div>
+                <div class="payment-method">
+                    <i class="fas fa-mobile-alt"></i>
+                    <div>
+                        <strong>Paiement Mobile</strong>
+                        <p style="margin:0;font-size:0.8125rem;color:var(--text-muted);">Inwi Money, Orange Money</p>
+                    </div>
+                </div>
+                <div class="payment-method">
+                    <i class="fas fa-university"></i>
+                    <div>
+                        <strong>Virement Bancaire</strong>
+                        <p style="margin:0;font-size:0.8125rem;color:var(--text-muted);">Attila, CIH, BMCE</p>
+                    </div>
+                </div>
+            </div>
+            
+            <form method="POST" action="{{ url_for('process_payment') }}">
+                <input type="hidden" name="type" value="annonce">
+                <input type="hidden" name="annonce_id" value="{{ annonce.id }}">
+                
+                <div class="form-group" style="text-align: left;">
+                    <label>Nom sur la carte</label>
+                    <input type="text" class="form-input" placeholder="Full name">
+                </div>
+                <div class="form-group" style="text-align: left;">
+                    <label>Numero de carte</label>
+                    <input type="text" class="form-input" placeholder="0000 0000 0000 0000">
+                </div>
+                <div class="form-row two-col">
+                    <div class="form-group" style="text-align: left;">
+                        <label>Expiration</label>
+                        <input type="text" class="form-input" placeholder="MM/YY">
+                    </div>
+                    <div class="form-group" style="text-align: left;">
+                        <label>CVC</label>
+                        <input type="text" class="form-input" placeholder="123">
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-lg btn-block" style="margin-top: 1rem;">
+                    <i class="fas fa-lock"></i> Payer {{ "%.0f"|format(amount) }} MAD
+                </button>
+            </form>
+            
+            <p style="font-size: 0.8125rem; color: var(--text-muted); margin-top: 1rem;">
+                <i class="fas fa-shield-alt"></i> Paiement 100% securise par CMI
+            </p>
+        </div>
+    </div>
+</section>
+{% endblock %}

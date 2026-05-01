@@ -1,0 +1,241 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Panel{% endblock %}
+
+{% block content %}
+<style>
+.admin-sidebar {
+    position: fixed;
+    top: var(--navbar-height);
+    left: 0;
+    bottom: 0;
+    width: 260px;
+    background: linear-gradient(180deg, var(--gray-900), #0f172a);
+    padding: 1.5rem 0;
+    overflow-y: auto;
+    z-index: 900;
+}
+.admin-sidebar-logo {
+    padding: 0 1.5rem 1.5rem;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    margin-bottom: 1rem;
+}
+.admin-sidebar-logo a {
+    color: var(--white);
+    font-size: 1.25rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+}
+.admin-sidebar-logo a i {
+    color: var(--primary-light);
+}
+.admin-sidebar-nav {
+    list-style: none;
+    padding: 0;
+}
+.admin-sidebar-nav li a {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1.5rem;
+    color: rgba(255,255,255,0.7);
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition: var(--transition-fast);
+    text-decoration: none;
+}
+.admin-sidebar-nav li a:hover,
+.admin-sidebar-nav li a.active {
+    color: var(--white);
+    background: rgba(13, 148, 136, 0.15);
+    border-right: 3px solid var(--primary);
+}
+.admin-sidebar-nav li a i {
+    width: 20px;
+    text-align: center;
+}
+.admin-main {
+    margin-left: 260px;
+    padding: 2rem;
+    min-height: calc(100vh - var(--navbar-height));
+    background: var(--bg-body);
+}
+@media (max-width: 768px) {
+    .admin-sidebar { width: 200px; }
+    .admin-main { margin-left: 200px; padding: 1rem; }
+}
+@media (max-width: 600px) {
+    .admin-sidebar { transform: translateX(-100%); transition: transform 0.3s; }
+    .admin-sidebar.open { transform: translateX(0); }
+    .admin-main { margin-left: 0; }
+}
+</style>
+
+<div class="admin-sidebar">
+    <div class="admin-sidebar-logo">
+        <a href="{{ url_for('admin_panel') }}">
+            <i class="fas fa-shield-alt"></i> Admin
+        </a>
+    </div>
+    <ul class="admin-sidebar-nav">
+        <li><a href="{{ url_for('admin_panel') }}" class="{% if request.endpoint == 'admin_panel' %}active{% endif %}"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+        <li><a href="{{ url_for('admin_users') }}" class="{% if request.endpoint == 'admin_users' %}active{% endif %}"><i class="fas fa-users"></i> Users</a></li>
+        <li><a href="{{ url_for('admin_services') }}" class="{% if request.endpoint == 'admin_services' %}active{% endif %}"><i class="fas fa-briefcase"></i> Services</a></li>
+        <li><a href="{{ url_for('admin_annonces') }}" class="{% if request.endpoint == 'admin_annonces' %}active{% endif %}"><i class="fas fa-bullhorn"></i> Annonces</a></li>
+        <li><a href="{{ url_for('admin_subscriptions') }}" class="{% if request.endpoint == 'admin_subscriptions' %}active{% endif %}"><i class="fas fa-crown"></i> Abonnements</a></li>
+        <li><a href="{{ url_for('admin_payments') }}" class="{% if request.endpoint == 'admin_payments' %}active{% endif %}"><i class="fas fa-credit-card"></i> Payments</a></li>
+        <li><a href="{{ url_for('admin_saas') }}" class="{% if request.endpoint == 'admin_saas' or request.endpoint == 'admin_saas_plans' %}active{% endif %}"><i class="fas fa-building"></i> SaaS Orgs</a></li>
+        <li><a href="{{ url_for('admin_whatsapp') }}" class="{% if request.endpoint == 'admin_whatsapp' %}active{% endif %}"><i class="fab fa-whatsapp"></i> WhatsApp</a></li>
+        <li><a href="{{ url_for('admin_config') }}" class="{% if request.endpoint == 'admin_config' %}active{% endif %}"><i class="fas fa-cogs"></i> Configuration</a></li>
+        <li><a href="{{ url_for('admin_admins') }}" class="{% if request.endpoint == 'admin_admins' %}active{% endif %}"><i class="fas fa-user-shield"></i> Admins</a></li>
+        <li style="margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;"><a href="{{ url_for('index') }}"><i class="fas fa-arrow-left"></i> Back to Site</a></li>
+    </ul>
+</div>
+
+<div class="admin-main">
+    <h1 style="font-size: 1.75rem; font-weight: 800; margin-bottom: 1.5rem;"><i class="fas fa-chart-line" style="color: var(--primary);"></i> Dashboard Overview</h1>
+    
+    <div class="admin-stats-row">
+        <div class="admin-stat-card">
+            <div class="label">Total Users</div>
+            <div class="value">{{ stats.total_users }}</div>
+            <div class="trend"><i class="fas fa-arrow-up"></i> +{{ stats.total_users // 10 }}</div>
+        </div>
+        <div class="admin-stat-card">
+            <div class="label">Workers</div>
+            <div class="value">{{ stats.total_workers }}</div>
+        </div>
+        <div class="admin-stat-card">
+            <div class="label">Entreprises</div>
+            <div class="value">{{ stats.total_entreprises }}</div>
+        </div>
+        <div class="admin-stat-card">
+            <div class="label">Clients</div>
+            <div class="value">{{ stats.total_clients }}</div>
+        </div>
+        <div class="admin-stat-card">
+            <div class="label">Services</div>
+            <div class="value">{{ stats.total_services }}</div>
+        </div>
+        <div class="admin-stat-card">
+            <div class="label">Bookings</div>
+            <div class="value">{{ stats.total_bookings }}</div>
+            <div class="trend" style="color: var(--warning);"><i class="fas fa-clock"></i> {{ stats.pending_bookings }} pending</div>
+        </div>
+        <div class="admin-stat-card">
+            <div class="label">Annonces</div>
+            <div class="value">{{ stats.total_annonces }}</div>
+        </div>
+        <div class="admin-stat-card" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white;">
+            <div class="label" style="color: rgba(255,255,255,0.8);">Revenue (MAD)</div>
+            <div class="value" style="color: white;">{{ "%.0f"|format(stats.revenue) }}</div>
+            <div class="trend" style="color: rgba(255,255,255,0.9);"><i class="fas fa-arrow-up"></i> Total</div>
+        </div>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+        <div class="chart-card">
+            <h3><i class="fas fa-chart-bar" style="color: var(--primary);"></i> Monthly Bookings</h3>
+            <canvas id="adminBookingsChart" height="200"></canvas>
+        </div>
+        <div class="chart-card">
+            <h3><i class="fas fa-chart-pie" style="color: var(--secondary);"></i> User Distribution</h3>
+            <canvas id="adminUsersChart" height="200"></canvas>
+        </div>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.5rem;">
+        <div class="chart-card">
+            <h3><i class="fas fa-coins" style="color: var(--success);"></i> Revenue (MAD)</h3>
+            <canvas id="adminRevenueChart" height="200"></canvas>
+        </div>
+        <div class="chart-card">
+            <h3><i class="fas fa-layer-group" style="color: var(--info);"></i> Services by Category</h3>
+            <canvas id="adminCategoryChart" height="200"></canvas>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+    fetch('/api/analytics/admin')
+    .then(r => r.json())
+    .then(data => {
+        new Chart(document.getElementById('adminBookingsChart'), {
+            type: 'line',
+            data: { labels: data.months, datasets: [{ label: 'Bookings', data: data.bookings, borderColor: '#0D9488', backgroundColor: 'rgba(13,148,136,0.1)', fill: true, tension: 0.4 }] },
+            options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+        });
+        new Chart(document.getElementById('adminUsersChart'), {
+            type: 'doughnut',
+            data: { labels: ['Workers', 'Clients', 'Entreprises'], datasets: [{ data: [data.total_workers, data.total_clients, data.total_entreprises || 0], backgroundColor: ['#0D9488', '#F59E0B', '#3B82F6'] }] },
+            options: { responsive: true }
+        });
+        new Chart(document.getElementById('adminRevenueChart'), {
+            type: 'bar',
+            data: { labels: data.months, datasets: [{ label: 'Revenue MAD', data: data.revenue, backgroundColor: '#0D9488', borderRadius: 6 }] },
+            options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+        });
+        new Chart(document.getElementById('adminCategoryChart'), {
+            type: 'bar',
+            data: { labels: data.category_labels, datasets: [{ label: 'Services', data: data.category_data, backgroundColor: '#F59E0B', borderRadius: 6 }] },
+            options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+        });
+    });
+    </script>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+        <div class="recent-section">
+            <h3><i class="fas fa-user-plus" style="color: var(--primary);"></i> Recent Users</h3>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead><tr><th>User</th><th>Type</th><th>Date</th></tr></thead>
+                    <tbody>
+                        {% for u in recent_users %}
+                        <tr>
+                            <td>{{ u.full_name }}</td>
+                            <td><span class="status-badge {% if u.user_type == 'entreprise' %}online{% else %}free{% endif %}">{{ u.user_type }}</span></td>
+                            <td>{{ u.created_at.strftime('%d %b') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="recent-section">
+            <h3><i class="fas fa-credit-card" style="color: var(--success);"></i> Recent Payments</h3>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead><tr><th>Ref</th><th>Amount</th><th>Status</th></tr></thead>
+                    <tbody>
+                        {% for p in recent_payments %}
+                        <tr>
+                            <td>{{ p.reference[:10] }}...</td>
+                            <td>{{ "%.0f"|format(p.amount) }} MAD</td>
+                            <td><span class="status-badge {% if p.status == 'completed' %}online{% else %}offline{% endif %}">{{ p.status }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="recent-section" style="margin-top: 1.5rem;">
+        <h3><i class="fas fa-envelope" style="color: var(--primary);"></i> Contact Messages</h3>
+        <div class="messages-list">
+            {% for msg in messages %}
+            <div class="message-card {% if not msg.is_read %}unread{% endif %}">
+                <div class="message-header">
+                    <h4>{{ msg.subject }}</h4>
+                    <span style="font-size: 0.8125rem; color: var(--text-muted);">{{ msg.created_at.strftime('%d %b %Y') }}</span>
+                </div>
+                <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.5rem;"><strong>{{ msg.name }}</strong> ({{ msg.email }})</p>
+                <p style="font-size: 0.937rem; color: var(--text-secondary);">{{ msg.message[:200] }}...</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

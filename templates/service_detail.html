@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block title %}{{ service.title }}{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="breadcrumb">
+            <a href="{{ url_for('index') }}">Home</a>
+            <i class="fas fa-chevron-right"></i>
+            <a href="{{ url_for('services') }}">Services</a>
+            <i class="fas fa-chevron-right"></i>
+            <span>{{ service.title }}</span>
+        </div>
+
+        <div class="service-detail-grid">
+            <div class="service-detail-main">
+                <div class="service-detail-card">
+                    <div class="service-detail-image">
+                        <div class="service-image-placeholder large">
+                            <i class="fas fa-briefcase"></i>
+                        </div>
+                        <span class="service-category">{{ service.category }}</span>
+                    </div>
+
+                    <div class="service-detail-content">
+                        <h1>{{ service.title }}</h1>
+                        <div class="service-detail-meta">
+                            <span><i class="fas fa-map-marker-alt"></i> {{ service.city }}</span>
+                            <span><i class="fas fa-clock"></i> Posted {{ service.created_at.strftime('%B %d, %Y') }}</span>
+                            <span class="service-status {% if service.is_active %}active{% else %}inactive{% endif %}">
+                                {% if service.is_active %}<i class="fas fa-check-circle"></i> Active{% else %}<i class="fas fa-times-circle"></i> Inactive{% endif %}
+                            </span>
+                        </div>
+
+                        <div class="service-detail-price">
+                            <span class="price">{{ "%.0f"|format(service.price) }} MAD</span>
+                            <span class="price-label">Starting price</span>
+                        </div>
+
+                        <div class="service-detail-description">
+                            <h3><i class="fas fa-align-left"></i> Description</h3>
+                            <p>{{ service.description }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reviews Section -->
+                <div class="reviews-section">
+                    <h3><i class="fas fa-star"></i> Reviews ({{ reviews|length }})</h3>
+
+                    {% if reviews %}
+                    <div class="reviews-list">
+                        {% for review in reviews %}
+                        <div class="review-card">
+                            <div class="review-header">
+                                <div class="reviewer-info">
+                                    <div class="reviewer-avatar">{{ review.client.full_name[0] }}</div>
+                                    <div>
+                                        <h4>{{ review.client.full_name }}</h4>
+                                        <span class="review-date">{{ review.created_at.strftime('%B %d, %Y') }}</span>
+                                    </div>
+                                </div>
+                                <div class="review-rating">
+                                    {% for i in range(1, 6) %}
+                                        {% if i <= review.rating %}
+                                            <i class="fas fa-star"></i>
+                                        {% else %}
+                                            <i class="far fa-star"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <p class="review-text">{{ review.comment }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="empty-state small">
+                        <i class="fas fa-comment-slash"></i>
+                        <p>No reviews yet. Be the first to review!</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="service-detail-sidebar">
+                <!-- Worker Info -->
+                <div class="sidebar-card worker-info-card">
+                    <h3><i class="fas fa-user"></i> Service Provider</h3>
+                    <div class="worker-profile">
+                        <div class="worker-avatar-large">{{ service.worker.full_name[0] }}</div>
+                        <h4>{{ service.worker.full_name }}</h4>
+                        <p><i class="fas fa-map-marker-alt"></i> {{ service.worker.city }}</p>
+                        <div class="worker-rating">
+                            {% set rating = service.worker.average_rating() %}
+                            {% for i in range(1, 6) %}
+                                {% if i <= rating %}
+                                    <i class="fas fa-star"></i>
+                                {% elif i - 0.5 <= rating %}
+                                    <i class="fas fa-star-half-alt"></i>
+                                {% else %}
+                                    <i class="far fa-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                            <span>{{ rating }} ({{ service.worker.review_count() }} reviews)</span>
+                        </div>
+                        {% if service.worker.skills %}
+                        <p class="worker-skills"><strong>Skills:</strong> {{ service.worker.skills }}</p>
+                        {% endif %}
+                        <a href="{{ url_for('profile', id=service.worker.id) }}" class="btn btn-outline btn-block">
+                            <i class="fas fa-user"></i> View Profile
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Book Service -->
+                {% if session.user_id and session.user_type == 'client' %}
+                <div class="sidebar-card booking-card">
+                    <h3><i class="fas fa-calendar-check"></i> Book This Service</h3>
+                    {% if has_booked %}
+                    <div class="booking-status">
+                        <i class="fas fa-check-circle"></i>
+                        <p>You have already booked this service.</p>
+                        <a href="{{ url_for('my_bookings') }}" class="btn btn-outline btn-block">View My Bookings</a>
+                    </div>
+                    {% else %}
+                    <form action="{{ url_for('book_service', service_id=service.id) }}" method="POST">
+                        <div class="form-group">
+                            <label>Your Message</label>
+                            <textarea name="message" rows="4" placeholder="Describe what you need..." required class="form-textarea"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block btn-lg">
+                            <i class="fas fa-paper-plane"></i> Request Service
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+                {% elif not session.user_id %}
+                <div class="sidebar-card booking-card">
+                    <h3><i class="fas fa-calendar-check"></i> Book This Service</h3>
+                    <p>Please log in as a client to book this service.</p>
+                    <a href="{{ url_for('login') }}" class="btn btn-primary btn-block">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </a>
+                </div>
+                {% endif %}
+
+                <!-- Related Services -->
+                {% if related_services %}
+                <div class="sidebar-card">
+                    <h3><i class="fas fa-thumbs-up"></i> Similar Services</h3>
+                    <div class="related-services">
+                        {% for related in related_services %}
+                        <a href="{{ url_for('service_detail', id=related.id) }}" class="related-service">
+                            <div class="related-service-image">
+                                <i class="fas fa-briefcase"></i>
+                            </div>
+                            <div class="related-service-info">
+                                <h4>{{ related.title }}</h4>
+                                <span>{{ "%.0f"|format(related.price) }} MAD</span>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Share -->
+                <div class="sidebar-card">
+                    <h3><i class="fas fa-share-alt"></i> Share</h3>
+                    <div class="share-buttons">
+                        <a href="#" class="share-btn facebook"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="share-btn twitter"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="share-btn whatsapp"><i class="fab fa-whatsapp"></i></a>
+                        <a href="#" class="share-btn email"><i class="fas fa-envelope"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin - Users{% endblock %}
+
+{% block content %}
+<style>
+.admin-main { margin-left: 260px; padding: 2rem; min-height: calc(100vh - var(--navbar-height)); background: var(--bg-body); }
+@media (max-width: 768px) { .admin-main { margin-left: 0; padding: 1rem; } }
+</style>
+
+<div class="admin-main">
+    <h1 style="font-size: 1.75rem; font-weight: 800; margin-bottom: 1.5rem;"><i class="fas fa-users" style="color: var(--primary);"></i> Manage Users</h1>
+    
+    <div class="filters-card">
+        <form method="get" class="filters-form">
+            <div class="filter-group">
+                <input type="text" name="search" class="form-input" placeholder="Search users..." value="{{ search }}">
+            </div>
+            <div class="filter-group">
+                <select name="user_type" class="form-select">
+                    <option value="">All Types</option>
+                    <option value="client" {% if user_type == 'client' %}selected{% endif %}>Client</option>
+                    <option value="worker" {% if user_type == 'worker' %}selected{% endif %}>Worker</option>
+                    <option value="entreprise" {% if user_type == 'entreprise' %}selected{% endif %}>Entreprise</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i></button>
+        </form>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>User</th>
+                    <th>Type</th>
+                    <th>City</th>
+                    <th>Status</th>
+                    <th>Admin</th>
+                    <th>Joined</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users.items %}
+                <tr>
+                    <td>{{ u.id }}</td>
+                    <td>
+                        <strong>{{ u.full_name }}</strong><br>
+                        <small style="color: var(--text-muted);">{{ u.username }} | {{ u.email }}</small>
+                    </td>
+                    <td><span class="status-badge {% if u.user_type == 'entreprise' %}online{% elif u.user_type == 'worker' %}free{% else %}offline{% endif %}">{{ u.user_type }}</span></td>
+                    <td>{{ u.city }}</td>
+                    <td><span class="status-badge {% if u.is_active %}online{% else %}offline{% endif %}">{{ 'Active' if u.is_active else 'Inactive' }}</span></td>
+                    <td>{% if u.is_admin %}<i class="fas fa-check-circle" style="color: var(--success);"></i>{% else %}-{% endif %}</td>
+                    <td>{{ u.created_at.strftime('%d %b %Y') }}</td>
+                    <td>
+                        <div class="table-actions">
+                            <form action="{{ url_for('toggle_user_active', id=u.id) }}" method="POST">
+                                <button type="submit" class="btn btn-sm {% if u.is_active %}btn-danger{% else %}btn-success{% endif %}">
+                                    <i class="fas fa-{% if u.is_active %}ban{% else %}check{% endif %}"></i>
+                                </button>
+                            </form>
+                            <form action="{{ url_for('toggle_admin', id=u.id) }}" method="POST">
+                                <button type="submit" class="btn btn-sm {% if u.is_admin %}btn-danger{% else %}btn-primary{% endif %}">
+                                    <i class="fas fa-user-shield"></i>
+                                </button>
+                            </form>
+                            <form action="{{ url_for('delete_user', id=u.id) }}" method="POST" onsubmit="return confirm('Delete this user?');">
+                                <button type="submit" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    {% if users.pages > 1 %}
+    <div class="pagination" style="margin-top: 1.5rem;">
+        {% for page_num in users.iter_pages(left_edge=2, left_current=2, right_current=2, right_edge=2) %}
+            {% if page_num %}
+                <a href="{{ url_for('admin_users', page=page_num, search=search, user_type=user_type) }}" class="page-link {% if page_num == users.page %}active{% endif %}">{{ page_num }}</a>
+            {% else %}
+                <span class="page-link dots">...</span>
+            {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

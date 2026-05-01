@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}Mes Disponibilites{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1><i class="fas fa-clock"></i> Mes Disponibilites</h1>
+        <p>Definissez vos horaires de travail pour que les clients sachent quand vous etes disponibles</p>
+    </div>
+</div>
+
+<section class="section">
+    <div class="container" style="max-width: 700px;">
+        <div class="card" style="padding: 2rem;">
+            <form method="POST" action="{{ url_for('manage_availability') }}">
+                {% for day in days %}
+                {% set existing = availability|selectattr('day_of_week', 'equalto', loop.index0)|list %}
+                {% set slot = existing[0] if existing else None %}
+                <div style="display: grid; grid-template-columns: 120px 1fr 1fr auto; gap: 1rem; align-items: center; padding: 1rem 0; border-bottom: 1px solid var(--border-light);">
+                    <label class="checkbox-label" style="margin: 0;">
+                        <input type="checkbox" name="available_{{ loop.index0 }}" {% if slot and slot.is_available %}checked{% endif %}>
+                        <strong>{{ day }}</strong>
+                    </label>
+                    <div class="form-group" style="margin: 0;">
+                        <input type="time" name="start_{{ loop.index0 }}" class="form-input" value="{{ slot.start_time if slot else '09:00' }}" style="margin: 0;">
+                    </div>
+                    <div class="form-group" style="margin: 0;">
+                        <input type="time" name="end_{{ loop.index0 }}" class="form-input" value="{{ slot.end_time if slot else '18:00' }}" style="margin: 0;">
+                    </div>
+                    <span style="font-size: 0.8125rem; color: var(--text-muted); font-weight: 500;">heures</span>
+                </div>
+                {% endfor %}
+
+                <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+                    <button type="submit" class="btn btn-primary btn-lg"><i class="fas fa-save"></i> Sauvegarder</button>
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-ghost btn-lg">Annuler</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}

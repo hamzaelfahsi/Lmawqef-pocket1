@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block title %}Annonces{% endblock %}
+
+{% block content %}
+<section class="hero" style="min-height: 300px; padding: 4rem 0 2rem;">
+    <div class="hero-content">
+        <h1 class="hero-title">Annonces <span class="highlight">Maroc</span></h1>
+        <p class="hero-subtitle">Trouvez des opportunites ou publiez votre offre. Recrutement, demandes et offres de service.</p>
+        {% if session.user_id %}
+        <a href="{{ url_for('add_annonce') }}" class="btn btn-white btn-lg" style="margin-top: 1rem;">
+            <i class="fas fa-plus-circle"></i> Publier une Annonce
+        </a>
+        {% endif %}
+    </div>
+</section>
+
+<section class="section section-alt">
+    <div class="container">
+        <!-- Filters -->
+        <div class="filters-card">
+            <form class="filters-form" method="get" action="{{ url_for('annonces') }}">
+                <div class="filter-group">
+                    <label><i class="fas fa-tag"></i> Type</label>
+                    <select name="type" class="form-select" onchange="this.form.submit()">
+                        <option value="">Tous les types</option>
+                        <option value="recrutement" {% if type_filter == 'recrutement' %}selected{% endif %}>Recrutement</option>
+                        <option value="demande_service" {% if type_filter == 'demande_service' %}selected{% endif %}>Demande de service</option>
+                        <option value="offre_service" {% if type_filter == 'offre_service' %}selected{% endif %}>Offre de service</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label><i class="fas fa-folder"></i> Categorie</label>
+                    <select name="category" class="form-select" onchange="this.form.submit()">
+                        <option value="">Toutes categories</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat }}" {% if category == cat %}selected{% endif %}>{{ cat }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label><i class="fas fa-map-marker-alt"></i> Ville</label>
+                    <select name="city" class="form-select" onchange="this.form.submit()">
+                        <option value="">Toutes villes</option>
+                        {% for city in cities %}
+                        <option value="{{ city }}" {% if city == city %}selected{% endif %}>{{ city }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="filter-actions">
+                    <a href="{{ url_for('annonces') }}" class="btn btn-ghost"><i class="fas fa-undo"></i> Reset</a>
+                </div>
+            </form>
+        </div>
+        
+        <div class="services-grid">
+            {% if annonces.items %}
+                {% for a in annonces.items %}
+                <div class="annonce-card">
+                    <div class="annonce-header">
+                        <span class="annonce-type-badge {{ a.type }}">
+                            {% if a.type == 'recrutement' %}
+                                <i class="fas fa-user-plus"></i> Recrutement
+                            {% elif a.type == 'demande_service' %}
+                                <i class="fas fa-hand-holding"></i> Demande
+                            {% else %}
+                                <i class="fas fa-briefcase"></i> Offre
+                            {% endif %}
+                        </span>
+                        {% if a.price %}
+                        <span class="annonce-price-tag">{{ "%.0f"|format(a.price) }} MAD</span>
+                        {% endif %}
+                    </div>
+                    {% if a.image %}
+                    <div style="height: 180px; overflow: hidden;">
+                        <img src="{{ url_for('static', filename=a.image) }}" alt="" style="width:100%;height:100%;object-fit:cover;">
+                    </div>
+                    {% endif %}
+                    <div class="annonce-content">
+                        <h3>{{ a.title }}</h3>
+                        <p>{{ a.description[:120] }}...</p>
+                        <div class="annonce-meta">
+                            {% if a.category %}<span><i class="fas fa-folder"></i> {{ a.category }}</span>{% endif %}
+                            {% if a.city %}<span><i class="fas fa-map-marker-alt"></i> {{ a.city }}</span>{% endif %}
+                            <span><i class="fas fa-eye"></i> {{ a.views_count }} vues</span>
+                        </div>
+                    </div>
+                    <div class="annonce-footer">
+                        <div class="annonce-author">
+                            <div class="worker-avatar-small">
+                                {% if a.author.avatar and a.author.avatar != 'default-avatar.png' %}
+                                    <img src="{{ url_for('static', filename=a.author.avatar) }}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
+                                {% else %}
+                                    {{ a.author.full_name[0] }}
+                                {% endif %}
+                            </div>
+                            {{ a.author.full_name }}
+                        </div>
+                        <a href="{{ url_for('annonce_detail', id=a.id) }}" class="btn btn-sm btn-primary">Voir</a>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state full-width">
+                    <i class="fas fa-bullhorn"></i>
+                    <h3>Aucune annonce</h3>
+                    <p>Soyez le premier a publier une annonce!</p>
+                    {% if session.user_id %}
+                    <a href="{{ url_for('add_annonce') }}" class="btn btn-primary mt-4"><i class="fas fa-plus-circle"></i> Publier</a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if annonces.pages > 1 %}
+        <div class="pagination">
+            {% if annonces.has_prev %}
+                <a href="{{ url_for('annonces', page=annonces.prev_num, type=type_filter, category=category, city=city) }}" class="page-link"><i class="fas fa-chevron-left"></i></a>
+            {% endif %}
+            {% for page_num in annonces.iter_pages(left_edge=2, left_current=2, right_current=2, right_edge=2) %}
+                {% if page_num %}
+                    <a href="{{ url_for('annonces', page=page_num, type=type_filter, category=category, city=city) }}" class="page-link {% if page_num == annonces.page %}active{% endif %}">{{ page_num }}</a>
+                {% else %}
+                    <span class="page-link dots">...</span>
+                {% endif %}
+            {% endfor %}
+            {% if annonces.has_next %}
+                <a href="{{ url_for('annonces', page=annonces.next_num, type=type_filter, category=category, city=city) }}" class="page-link"><i class="fas fa-chevron-right"></i></a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

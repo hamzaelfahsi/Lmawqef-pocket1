@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+
+{% block title %}{{ user.full_name }} - Profile{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div class="container">
+        <h1><i class="fas fa-user-circle"></i> Worker Profile</h1>
+        <p>View services, reviews, and portfolio</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="profile-grid">
+            <!-- Profile Sidebar -->
+            <div class="profile-sidebar">
+                <div class="profile-card">
+                    <div class="worker-avatar" style="width: 100px; height: 100px; font-size: 2.5rem;">
+                        {% if user.avatar and user.avatar != 'default-avatar.png' %}
+                            <img src="{{ url_for('static', filename=user.avatar) }}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
+                        {% else %}
+                            {{ user.full_name[0] }}
+                        {% endif %}
+                    </div>
+                    <h2>{{ user.full_name }}</h2>
+                    <p style="color: var(--text-muted);">{{ user.user_type|title }}{% if user.worker_subtype %} - {{ user.worker_subtype|title }}{% endif %}</p>
+                    <p><i class="fas fa-map-marker-alt"></i> {{ user.city }}</p>
+                    {% if user.address %}
+                    <p style="font-size: 0.8125rem; color: var(--text-muted);"><i class="fas fa-map-pin"></i> {{ user.address }}</p>
+                    {% endif %}
+
+                    <div class="worker-rating" style="justify-content: center; margin: 1rem 0;">
+                        {% set rating = user.average_rating() %}
+                        {% for i in range(1, 6) %}
+                            {% if i <= rating %}<i class="fas fa-star"></i>
+                            {% elif i - 0.5 <= rating %}<i class="fas fa-star-half-alt"></i>
+                            {% else %}<i class="far fa-star"></i>{% endif %}
+                        {% endfor %}
+                        <span>{{ rating }} ({{ user.review_count() }} reviews)</span>
+                    </div>
+
+                    {% if user.has_active_subscription() %}
+                    <span class="sub-badge active"><i class="fas fa-crown"></i> {{ user.subscription_plan.name }}</span>
+                    {% endif %}
+
+                    {% if user.user_type in ['worker', 'entreprise'] and user.skills %}
+                    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-light);">
+                        <h4 style="font-size: 0.875rem; font-weight: 700; margin-bottom: 0.5rem;"><i class="fas fa-tools"></i> Skills</h4>
+                        <div style="display: flex; flex-wrap: wrap; gap: 0.375rem;">
+                            {% for skill in user.skills.split(',') %}
+                            <span style="background: var(--primary-lighter); color: var(--primary-dark); padding: 0.25rem 0.625rem; border-radius: var(--radius-full); font-size: 0.75rem; font-weight: 600;">{{ skill.strip() }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if user.user_type == 'entreprise' and user.company_name %}
+                    <div style="margin-top: 1rem;">
+                        <h4 style="font-size: 0.875rem; font-weight: 700;"><i class="fas fa-building"></i> {{ user.company_name }}</h4>
+                        {% if user.rc_number %}<p style="font-size: 0.8125rem; color: var(--text-muted);">RC: {{ user.rc_number }}</p>{% endif %}
+                        {% if user.ice_number %}<p style="font-size: 0.8125rem; color: var(--text-muted);">ICE: {{ user.ice_number }}</p>{% endif %}
+                    </div>
+                    {% endif %}
+
+                    {% if session.user_id and session.user_id != user.id %}
+                    <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                        <a href="{{ url_for('messages', with=user.id) }}" class="btn btn-primary btn-block">
+                            <i class="fas fa-comment-dots"></i> Send Message
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Portfolio -->
+                {% if portfolio %}
+                <div class="profile-section" style="margin-top: 1.5rem;">
+                    <h3><i class="fas fa-images" style="color: var(--primary);"></i> Portfolio</h3>
+                    <div class="portfolio-grid" style="grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                        {% for item in portfolio %}
+                        <div class="portfolio-item" style="aspect-ratio: 1;">
+                            <img src="{{ url_for('static', filename=item.filename) }}" alt="{{ item.title }}">
+                            <div class="portfolio-overlay">
+                                <h4>{{ item.title }}</h4>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Profile Main -->
+            <div class="profile-main">
+                {% if user.description %}
+                <div class="profile-section">
+                    <h2><i class="fas fa-align-left" style="color: var(--primary);"></i> About</h2>
+                    <p style="line-height: 1.8; color: var(--text-secondary);">{{ user.description }}</p>
+                </div>
+                {% endif %}
+
+                <!-- Services -->
+                {% if services %}
+                <div class="profile-section">
+                    <h2><i class="fas fa-briefcase" style="color: var(--primary);"></i> Services ({{ services|length }})</h2>
+                    <div class="services-grid small">
+                        {% for service in services %}
+                        <div class="service-card">
+                            <div class="service-image">
+                                <div class="service-image-placeholder">
+                                    {% if service.images %}
+                                        <img src="{{ url_for('static', filename=service.images[0].filename) }}" alt="" style="width:100%;height:100%;object-fit:cover;">
+                                    {% else %}
+                                        <i class="fas fa-briefcase"></i>
+                                    {% endif %}
+                                </div>
+                                <span class="service-category">{{ service.category }}</span>
+                            </div>
+                            <div class="service-content">
+                                <h3 class="service-title">{{ service.title }}</h3>
+                                <div class="service-meta">
+                                    <span class="service-city"><i class="fas fa-map-marker-alt"></i> {{ service.city }}</span>
+                                    <span class="service-price">{{ "%.0f"|format(service.price) }} MAD</span>
+                                </div>
+                                <a href="{{ url_for('service_detail', id=service.id) }}" class="btn btn-primary btn-block btn-sm">View Details</a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Reviews -->
+                <div class="profile-section">
+                    <h2><i class="fas fa-star" style="color: var(--secondary);"></i> Reviews ({{ user.review_count() }})</h2>
+                    {% if reviews %}
+                        <div class="reviews-list">
+                            {% for review in reviews %}
+                            <div class="review-card">
+                                <div class="review-header">
+                                    <div class="reviewer-info">
+                                        <div class="reviewer-avatar">{{ review.client.full_name[0] }}</div>
+                                        <div>
+                                            <h4>{{ review.client.full_name }}</h4>
+                                            <span class="review-date">{{ review.created_at.strftime('%d %b %Y') }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="review-rating">
+                                        {% for i in range(1, 6) %}
+                                            {% if i <= review.rating %}<i class="fas fa-star"></i>{% else %}<i class="far fa-star"></i>{% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <p class="review-text">{{ review.comment }}</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state small">
+                            <i class="fas fa-star"></i>
+                            <h3>No reviews yet</h3>
+                            <p>Be the first to leave a review after booking a service</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Add Review (for clients who have booked) -->
+                {% if session.user_id and session.user_type == 'client' and has_booked %}
+                <div class="add-review-card">
+                    <h3><i class="fas fa-pen" style="color: var(--primary);"></i> Leave a Review</h3>
+                    <form action="{{ url_for('add_review', worker_id=user.id) }}" method="POST">
+                        <div class="form-group">
+                            <label>Rating</label>
+                            <div class="star-rating-input">
+                                <input type="radio" id="star5" name="rating" value="5"><label for="star5"><i class="fas fa-star"></i></label>
+                                <input type="radio" id="star4" name="rating" value="4"><label for="star4"><i class="fas fa-star"></i></label>
+                                <input type="radio" id="star3" name="rating" value="3"><label for="star3"><i class="fas fa-star"></i></label>
+                                <input type="radio" id="star2" name="rating" value="2"><label for="star2"><i class="fas fa-star"></i></label>
+                                <input type="radio" id="star1" name="rating" value="1" required><label for="star1"><i class="fas fa-star"></i></label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Comment</label>
+                            <textarea name="comment" class="form-textarea" rows="3" placeholder="Share your experience..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Submit Review</button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

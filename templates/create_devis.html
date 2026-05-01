@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block title %}Nouveau Devis{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1><i class="fas fa-file-invoice"></i> Creer un Devis</h1>
+        <p>Generez un devis professionnel pour votre client</p>
+    </div>
+</div>
+
+<section class="section">
+    <div class="container" style="max-width: 800px;">
+        <div class="card" style="padding: 2rem;">
+            <form method="POST" action="{{ url_for('create_devis') }}" id="devisForm">
+                <div class="form-row two-col">
+                    <div class="form-group">
+                        <label><i class="fas fa-user"></i> Nom du Client</label>
+                        <input type="text" name="client_name" class="form-input" required placeholder="Nom complet">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-envelope"></i> Email Client</label>
+                        <input type="email" name="client_email" class="form-input" required placeholder="client@email.com">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-heading"></i> Titre du Devis</label>
+                    <input type="text" name="title" class="form-input" required placeholder="Ex: Renovation cuisine">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-align-left"></i> Description</label>
+                    <textarea name="description" class="form-textarea" rows="3" placeholder="Description detaillee du projet..."></textarea>
+                </div>
+
+                <h3 style="margin: 1.5rem 0 1rem; font-size: 1.125rem;"><i class="fas fa-list" style="color: var(--primary);"></i> Lignes du Devis</h3>
+                <div id="devisItems">
+                    <div class="devis-item-row" style="display: grid; grid-template-columns: 1fr 120px 120px 40px; gap: 0.75rem; margin-bottom: 0.75rem;">
+                        <input type="text" class="form-input item-desc" placeholder="Description" required>
+                        <input type="number" class="form-input item-qty" placeholder="Qte" value="1" min="1">
+                        <input type="number" class="form-input item-price" placeholder="Prix unitaire" step="0.01" min="0">
+                        <button type="button" class="btn btn-ghost" onclick="this.parentElement.remove(); calculateTotal();"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-outline btn-sm" onclick="addDevisItem()"><i class="fas fa-plus"></i> Ajouter une ligne</button>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1.5rem;">
+                    <div class="form-group">
+                        <label><i class="fas fa-percent"></i> TVA (%)</label>
+                        <input type="number" name="tva_rate" class="form-input" value="20" step="0.01" id="tvaRate" onchange="calculateTotal()">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-calendar"></i> Valide pendant (jours)</label>
+                        <input type="number" name="valid_days" class="form-input" value="30" min="1">
+                    </div>
+                </div>
+
+                <div style="background: var(--gray-50); padding: 1.5rem; border-radius: var(--radius-lg); margin-top: 1.5rem; text-align: right;">
+                    <p style="font-size: 0.9375rem; color: var(--text-secondary);">Total HT: <strong id="totalHT" style="font-size: 1.25rem; color: var(--text-primary);">0.00 MAD</strong></p>
+                    <p style="font-size: 0.9375rem; color: var(--text-secondary);">TVA: <strong id="totalTVA" style="font-size: 1.25rem; color: var(--text-primary);">0.00 MAD</strong></p>
+                    <p style="font-size: 1.25rem; color: var(--primary); font-weight: 800;">Total TTC: <strong id="totalTTC" style="font-size: 1.75rem;">0.00 MAD</strong></p>
+                </div>
+
+                <input type="hidden" name="items" id="itemsJson">
+                <input type="hidden" name="total_ht" id="totalHTInput">
+
+                <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+                    <button type="submit" class="btn btn-primary btn-lg"><i class="fas fa-file-invoice"></i> Generer le Devis</button>
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-ghost btn-lg">Annuler</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+
+<script>
+function addDevisItem() {
+    const container = document.getElementById('devisItems');
+    const div = document.createElement('div');
+    div.className = 'devis-item-row';
+    div.style.cssText = 'display: grid; grid-template-columns: 1fr 120px 120px 40px; gap: 0.75rem; margin-bottom: 0.75rem;';
+    div.innerHTML = '<input type="text" class="form-input item-desc" placeholder="Description" required>' +
+        '<input type="number" class="form-input item-qty" placeholder="Qte" value="1" min="1">' +
+        '<input type="number" class="form-input item-price" placeholder="Prix unitaire" step="0.01" min="0">' +
+        '<button type="button" class="btn btn-ghost" onclick="this.parentElement.remove(); calculateTotal();"><i class="fas fa-trash"></i></button>';
+    container.appendChild(div);
+}
+
+function calculateTotal() {
+    let total = 0;
+    document.querySelectorAll('.devis-item-row').forEach(row => {
+        const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
+        const price = parseFloat(row.querySelector('.item-price').value) || 0;
+        total += qty * price;
+    });
+    const tvaRate = parseFloat(document.getElementById('tvaRate').value) || 0;
+    const tva = total * (tvaRate / 100);
+    const ttc = total + tva;
+    document.getElementById('totalHT').textContent = total.toFixed(2) + ' MAD';
+    document.getElementById('totalTVA').textContent = tva.toFixed(2) + ' MAD';
+    document.getElementById('totalTTC').textContent = ttc.toFixed(2) + ' MAD';
+    document.getElementById('totalHTInput').value = total.toFixed(2);
+}
+
+document.getElementById('devisForm').addEventListener('submit', function(e) {
+    const items = [];
+    document.querySelectorAll('.devis-item-row').forEach(row => {
+        items.push({
+            description: row.querySelector('.item-desc').value,
+            quantity: parseFloat(row.querySelector('.item-qty').value) || 0,
+            unit_price: parseFloat(row.querySelector('.item-price').value) || 0
+        });
+    });
+    document.getElementById('itemsJson').value = JSON.stringify(items);
+});
+
+document.addEventListener('input', function(e) {
+    if (e.target.classList.contains('item-qty') || e.target.classList.contains('item-price') || e.target.id === 'tvaRate') {
+        calculateTotal();
+    }
+});
+</script>
+{% endblock %}

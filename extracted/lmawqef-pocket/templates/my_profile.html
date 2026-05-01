@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div class="container">
+        <h1><i class="fas fa-user"></i> My Profile</h1>
+        <p>Manage your account, portfolio and settings</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="profile-grid">
+            <!-- Profile Sidebar -->
+            <div class="profile-sidebar">
+                <div class="profile-card">
+                    <div class="worker-avatar" style="width: 100px; height: 100px; font-size: 2.5rem;">
+                        {% if user.avatar and user.avatar != 'default-avatar.png' %}
+                            <img src="{{ url_for('static', filename=user.avatar) }}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
+                        {% else %}
+                            {{ user.full_name[0] }}
+                        {% endif %}
+                    </div>
+                    <h2>{{ user.full_name }}</h2>
+                    <p style="color: var(--text-muted);">{{ user.user_type|title }}{% if user.worker_subtype %} - {{ user.worker_subtype|title }}{% endif %}</p>
+                    <p><i class="fas fa-map-marker-alt"></i> {{ user.city }}</p>
+                    <div class="worker-rating" style="justify-content: center; margin-bottom: 1rem;">
+                        {% set rating = user.average_rating() %}
+                        {% for i in range(1, 6) %}
+                            {% if i <= rating %}<i class="fas fa-star"></i>
+                            {% elif i - 0.5 <= rating %}<i class="fas fa-star-half-alt"></i>
+                            {% else %}<i class="far fa-star"></i>{% endif %}
+                        {% endfor %}
+                        <span>{{ rating }} ({{ user.review_count() }})</span>
+                    </div>
+                    {% if user.has_active_subscription() %}
+                    <span class="sub-badge active"><i class="fas fa-crown"></i> {{ user.subscription_plan.name }}</span>
+                    {% endif %}
+                </div>
+
+                <!-- Portfolio Section -->
+                {% if user.user_type in ['worker', 'entreprise'] %}
+                <div class="profile-section" style="margin-top: 1.5rem;">
+                    <h3><i class="fas fa-images" style="color: var(--primary);"></i> Portfolio</h3>
+                    {% if portfolio %}
+                        <div class="portfolio-grid" style="grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                            {% for item in portfolio %}
+                            <div class="portfolio-item" style="aspect-ratio: 1;">
+                                <img src="{{ url_for('static', filename=item.filename) }}" alt="{{ item.title }}">
+                                <div class="portfolio-overlay">
+                                    <h4>{{ item.title }}</h4>
+                                </div>
+                                <form action="{{ url_for('delete_portfolio', id=item.id) }}" method="POST" onsubmit="return confirm('Delete this item?');">
+                                    <button type="submit" class="portfolio-delete-btn"><i class="fas fa-trash"></i></button>
+                                </form>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p style="font-size: 0.875rem; color: var(--text-muted); text-align: center; padding: 1rem;">No portfolio items yet. Upload your work below!</p>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Profile Main -->
+            <div class="profile-main">
+                <div class="profile-section">
+                    <h2><i class="fas fa-edit" style="color: var(--primary);"></i> Edit Profile</h2>
+                    <form method="POST" action="{{ url_for('my_profile') }}" enctype="multipart/form-data">
+                        <!-- Avatar Upload -->
+                        <div class="form-group">
+                            <label><i class="fas fa-camera"></i> Profile Photo</label>
+                            <div class="upload-area" onclick="document.getElementById('avatarInput').click()">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <p>Click to upload new photo</p>
+                                <small>PNG, JPG up to 16MB</small>
+                            </div>
+                            <input type="file" name="avatar" id="avatarInput" accept="image/*" style="display:none;" onchange="previewAvatar(this)">
+                            <div id="avatarPreview" style="margin-top: 1rem; display: none;">
+                                <img src="" alt="Preview" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary);">
+                            </div>
+                        </div>
+
+                        <div class="form-row two-col">
+                            <div class="form-group">
+                                <label><i class="fas fa-id-card"></i> Full Name</label>
+                                <input type="text" name="full_name" value="{{ user.full_name }}" required class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-phone"></i> Phone</label>
+                                <input type="tel" name="phone" value="{{ user.phone }}" required class="form-input">
+                            </div>
+                        </div>
+
+                        <div class="form-row two-col">
+                            <div class="form-group">
+                                <label><i class="fas fa-map-marker-alt"></i> City</label>
+                                <select name="city" required class="form-select">
+                                    {% for c in cities %}
+                                    <option value="{{ c }}" {% if user.city == c %}selected{% endif %}>{{ c }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-map-pin"></i> Address</label>
+                                <input type="text" name="address" value="{{ user.address or '' }}" class="form-input" placeholder="Full address">
+                            </div>
+                        </div>
+
+                        <!-- Geolocation -->
+                        <div class="form-group">
+                            <label><i class="fas fa-globe"></i> Geolocation</label>
+                            <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                                <input type="text" name="latitude" id="latitude" value="{{ user.latitude or '' }}" class="form-input" placeholder="Latitude" style="flex: 1;">
+                                <input type="text" name="longitude" id="longitude" value="{{ user.longitude or '' }}" class="form-input" placeholder="Longitude" style="flex: 1;">
+                                <button type="button" class="geo-btn" onclick="getLocation()">
+                                    <i class="fas fa-crosshairs"></i> Detect
+                                </button>
+                            </div>
+                            <div class="map-container" style="margin-top: 1rem; height: 200px;">
+                                <i class="fas fa-map-marked-alt"></i>
+                                <p>Map integration available with Google Maps API</p>
+                            </div>
+                        </div>
+
+                        {% if user.user_type in ['worker', 'entreprise'] %}
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label><i class="fas fa-tools"></i> Skills</label>
+                                <input type="text" name="skills" value="{{ user.skills or '' }}" class="form-input" placeholder="e.g., Web Development, Plumbing, Painting">
+                                <small>Separate skills with commas</small>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if user.user_type == 'entreprise' %}
+                        <div class="form-row two-col">
+                            <div class="form-group">
+                                <label><i class="fas fa-building"></i> Company Name</label>
+                                <input type="text" name="company_name" value="{{ user.company_name or '' }}" class="form-input">
+                            </div>
+                        </div>
+                        <div class="form-row two-col">
+                            <div class="form-group">
+                                <label><i class="fas fa-file-alt"></i> RC Number</label>
+                                <input type="text" name="rc_number" value="{{ user.rc_number or '' }}" class="form-input" placeholder="Registre de Commerce">
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-barcode"></i> ICE Number</label>
+                                <input type="text" name="ice_number" value="{{ user.ice_number or '' }}" class="form-input" placeholder="ICE Maroc">
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <div class="form-group">
+                            <label><i class="fas fa-align-left"></i> About You</label>
+                            <textarea name="description" rows="4" class="form-textarea" placeholder="Tell us about yourself...">{{ user.description or '' }}</textarea>
+                        </div>
+
+                        <!-- Portfolio Upload -->
+                        {% if user.user_type in ['worker', 'entreprise'] %}
+                        <div class="form-group">
+                            <label><i class="fas fa-images"></i> Add Portfolio Images</label>
+                            <div class="upload-area" onclick="document.getElementById('portfolioInput').click()">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <p>Click to upload portfolio images</p>
+                                <small>You can select multiple images</small>
+                            </div>
+                            <input type="file" name="portfolio_files" id="portfolioInput" accept="image/*" multiple style="display:none;" onchange="previewPortfolio(this)">
+                            <div id="portfolioPreview" class="image-preview-grid" style="display: none;"></div>
+                            <input type="text" name="portfolio_title" class="form-input" placeholder="Portfolio title (optional)" style="margin-top: 0.75rem;">
+                        </div>
+                        {% endif %}
+
+                        <div class="form-actions" style="display: flex; gap: 1rem;">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save"></i> Save Changes
+                            </button>
+                            <a href="{{ url_for('dashboard') }}" class="btn btn-outline btn-lg">
+                                <i class="fas fa-chart-line"></i> Dashboard
+                            </a>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Account Info -->
+                <div class="profile-section">
+                    <h2><i class="fas fa-info-circle" style="color: var(--primary);"></i> Account Information</h2>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Username</span>
+                            <span class="info-value">{{ user.username }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Email</span>
+                            <span class="info-value">{{ user.email }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Account Type</span>
+                            <span class="info-value">{{ user.user_type|title }}{% if user.worker_subtype %} ({{ user.worker_subtype|title }}){% endif %}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Member Since</span>
+                            <span class="info-value">{{ user.created_at.strftime('%d %b %Y') }}</span>
+                        </div>
+                        {% if user.has_active_subscription() %}
+                        <div class="info-item">
+                            <span class="info-label">Subscription</span>
+                            <span class="info-value" style="color: var(--success);">{{ user.subscription_plan.name }} (until {{ user.subscription_end.strftime('%d %b %Y') }})</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Annonces Left</span>
+                            <span class="info-value">{{ user.get_monthly_annonce_limit() - user.announces_month_used }} / {{ user.get_monthly_annonce_limit() }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="info-item">
+                            <span class="info-label">Free Announces Used</span>
+                            <span class="info-value">{{ user.free_announces_used }} / {{ config.free_announces_new_user if config else 5 }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+function previewAvatar(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('avatarPreview');
+            preview.querySelector('img').src = e.target.result;
+            preview.style.display = 'block';
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function previewPortfolio(input) {
+    const preview = document.getElementById('portfolioPreview');
+    preview.innerHTML = '';
+    if (input.files) {
+        Array.from(input.files).forEach(file => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const div = document.createElement('div');
+                div.className = 'image-preview-item';
+                div.innerHTML = '<img src="' + e.target.result + '">';
+                preview.appendChild(div);
+            }
+            reader.readAsDataURL(file);
+        });
+        preview.style.display = 'grid';
+    }
+}
+
+function getLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            document.getElementById('latitude').value = position.coords.latitude.toFixed(6);
+            document.getElementById('longitude').value = position.coords.longitude.toFixed(6);
+        }, function() {
+            alert('Geolocation is not available or permission denied.');
+        });
+    } else {
+        alert('Geolocation is not supported by this browser.');
+    }
+}
+</script>
+{% endblock %}

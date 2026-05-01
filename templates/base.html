@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Lmawqef Pocket{% endblock %} - Moroccan Marketplace</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/themes/modern.css') }}" id="theme-stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="{{ url_for('index') }}" class="nav-logo">
+                <i class="fas fa-handshake"></i>
+                <span>Lmawqef</span>
+            </a>
+
+            <button class="nav-toggle" id="navToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+
+            <ul class="nav-menu" id="navMenu">
+            <li class="nav-dropdown theme-dropdown">
+                <a href="#" class="nav-link" title="Change Theme">
+                    <i class="fas fa-palette"></i>
+                    <span class="theme-label">Theme</span>
+                </a>
+                <ul class="dropdown-menu theme-menu">
+                    <li><a href="#" data-theme="modern" class="theme-option active"><i class="fas fa-circle" style="color:#0d9488"></i> Modern Premium</a></li>
+                    <li><a href="#" data-theme="professional" class="theme-option"><i class="fas fa-circle" style="color:#0f766e"></i> Professional Workforce</a></li>
+                    <li><a href="#" data-theme="default" class="theme-option"><i class="fas fa-circle" style="color:#2563eb"></i> Default Blue</a></li>
+                    <li><a href="#" data-theme="dark" class="theme-option"><i class="fas fa-circle" style="color:#6366f1"></i> Dark Pro</a></li>
+                    <li><a href="#" data-theme="emerald" class="theme-option"><i class="fas fa-circle" style="color:#059669"></i> Emerald Morocco</a></li>
+                    <li><a href="#" data-theme="royal" class="theme-option"><i class="fas fa-circle" style="color:#1e40af"></i> Royal Blue & Gold</a></li>
+                    <li><a href="#" data-theme="sunset" class="theme-option"><i class="fas fa-circle" style="color:#ea580c"></i> Sunset Marrakech</a></li>
+                    <li><a href="#" data-theme="minimal" class="theme-option"><i class="fas fa-circle" style="color:#18181b"></i> Minimalist Clean</a></li>
+                </ul>
+            </li>
+
+                <li><a href="{{ url_for('index') }}" class="nav-link {% if request.endpoint == 'index' %}active{% endif %}">Home</a></li>
+                <li><a href="{{ url_for('services') }}" class="nav-link {% if request.endpoint == 'services' %}active{% endif %}">Services</a></li>
+                <li><a href="{{ url_for('annonces') }}" class="nav-link {% if request.endpoint == 'annonces' or request.endpoint == 'annonce_detail' or request.endpoint == 'add_annonce' %}active{% endif %}">Annonces</a></li>
+                <li><a href="{{ url_for('workers') }}" class="nav-link {% if request.endpoint == 'workers' %}active{% endif %}">Workers</a></li>
+                <li><a href="{{ url_for('ai_match') }}" class="nav-link {% if request.endpoint == 'ai_match' %}active{% endif %}"><i class="fas fa-robot"></i> AI Match</a></li>
+                <li><a href="{{ url_for('about') }}" class="nav-link {% if request.endpoint == 'about' %}active{% endif %}">About</a></li>
+                <li><a href="{{ url_for('contact') }}" class="nav-link {% if request.endpoint == 'contact' %}active{% endif %}">Contact</a></li>
+
+                {% if session.user_id %}
+                    <li><a href="{{ url_for('messages') }}" class="nav-link" title="Messages"><i class="fas fa-comment-dots"></i>{% if unread_messages > 0 %}<span class="badge">{{ unread_messages }}</span>{% endif %}</a></li>
+                    <li><a href="{{ url_for('notifications') }}" class="nav-link" title="Notifications"><i class="fas fa-bell"></i>{% if unread_notifications > 0 %}<span class="badge">{{ unread_notifications }}</span>{% endif %}</a></li>
+                    <li class="nav-dropdown">
+                        <a href="#" class="nav-link nav-user">
+                            <i class="fas fa-user-circle"></i>
+                            {{ session.username }}
+                            <i class="fas fa-chevron-down"></i>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a href="{{ url_for('dashboard') }}"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+                            <li><a href="{{ url_for('my_profile') }}"><i class="fas fa-user"></i> My Profile</a></li>
+                            <li><a href="{{ url_for('my_bookings') }}"><i class="fas fa-calendar-check"></i> My Bookings</a></li>
+                            <li><a href="{{ url_for('messages') }}"><i class="fas fa-comment-dots"></i> Messages</a></li>
+                            {% if session.user_type in ['worker', 'entreprise'] %}
+                            <li><a href="{{ url_for('my_services') }}"><i class="fas fa-briefcase"></i> My Services</a></li>
+                            <li><a href="{{ url_for('add_service') }}"><i class="fas fa-plus-circle"></i> Add Service</a></li>
+                            <li><a href="{{ url_for('ai_match') }}"><i class="fas fa-robot"></i> AI Match</a></li>
+                            {% endif %}
+                            <li><a href="{{ url_for('annonces') }}"><i class="fas fa-bullhorn"></i> Annonces</a></li>
+                            <li><a href="{{ url_for('abonnements') }}"><i class="fas fa-crown"></i> Abonnements</a></li>
+                            <li><a href="{{ url_for('saas_register') }}"><i class="fas fa-building"></i> SaaS Org</a></li>
+                            {% if current_user and current_user.is_admin %}
+                            <li><a href="{{ url_for('admin_panel') }}"><i class="fas fa-cog"></i> Admin Panel</a></li>
+                            {% endif %}
+                            <li class="divider"></li>
+                            <li><a href="{{ url_for('logout') }}" class="logout-link"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                        </ul>
+                    </li>
+                {% else %}
+                    <li><a href="{{ url_for('login') }}" class="nav-link btn-login">Login</a></li>
+                    <li><a href="{{ url_for('register') }}" class="nav-link btn-register">Register</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-container">
+                {% for category, message in messages %}
+                    <div class="flash flash-{{ category }}">
+                        <i class="fas fa-{% if category == 'success' %}check-circle{% elif category == 'danger' %}exclamation-circle{% elif category == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %}"></i>
+                        {{ message }}
+                        <button class="flash-close" onclick="this.parentElement.remove()">&times;</button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="{{ url_for('index') }}" class="footer-logo">
+                        <i class="fas fa-handshake"></i>
+                        <span>Lmawqef Pocket</span>
+                    </a>
+                    <p class="footer-desc">Your trusted Moroccan marketplace connecting clients with skilled professionals. Find reliable services across Morocco.</p>
+                    <div class="footer-social">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+
+                <div class="footer-links">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="{{ url_for('index') }}">Home</a></li>
+                        <li><a href="{{ url_for('services') }}">Services</a></li>
+                        <li><a href="{{ url_for('workers') }}">Workers</a></li>
+                        <li><a href="{{ url_for('about') }}">About Us</a></li>
+                        <li><a href="{{ url_for('contact') }}">Contact</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-links">
+                    <h4>Categories</h4>
+                    <ul>
+                        <li><a href="{{ url_for('services', category='IT & Technology') }}">IT & Technology</a></li>
+                        <li><a href="{{ url_for('services', category='Construction & Renovation') }}">Construction</a></li>
+                        <li><a href="{{ url_for('services', category='Cleaning & Housekeeping') }}">Cleaning</a></li>
+                        <li><a href="{{ url_for('services', category='Transport & Logistics') }}">Transport</a></li>
+                        <li><a href="{{ url_for('services', category='Plumbing & Electrical') }}">Plumbing</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-contact">
+                    <h4>Contact Us</h4>
+                    <p><i class="fas fa-map-marker-alt"></i> Casablanca, Morocco</p>
+                    <p><i class="fas fa-phone"></i> +212 5XX-XXXXXX</p>
+                    <p><i class="fas fa-envelope"></i> info@lmawqef.ma</p>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; {{ now.year }} Lmawqef Pocket. All rights reserved.</p>
+                <p>Made with <i class="fas fa-heart"></i> in Morocco</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    
+<script>
+// Theme Switcher
+document.addEventListener('DOMContentLoaded', function() {
+    const themeLink = document.getElementById('theme-stylesheet');
+    const themeOptions = document.querySelectorAll('.theme-option');
+
+    // Load saved theme
+    const savedTheme = localStorage.getItem('lmawqef-theme') || 'modern';
+    if (savedTheme !== 'modern') {
+        themeLink.href = themeLink.href.replace('themes/modern.css', 'themes/' + savedTheme + '.css');
+    }
+
+    // Update active state
+    themeOptions.forEach(opt => {
+        if (opt.dataset.theme === savedTheme) {
+            opt.classList.add('active');
+        } else {
+            opt.classList.remove('active');
+        }
+    });
+
+    // Handle clicks
+    themeOptions.forEach(option => {
+        option.addEventListener('click', function(e) {
+            e.preventDefault();
+            const theme = this.dataset.theme;
+
+            if (theme === 'modern') {
+                themeLink.href = themeLink.href.replace(/themes\/[^\/]+\.css/, 'themes/modern.css');
+            } else {
+                themeLink.href = themeLink.href.replace(/themes\/[^\/]+\.css/, 'themes/' + theme + '.css');
+            }
+
+            localStorage.setItem('lmawqef-theme', theme);
+
+            themeOptions.forEach(opt => opt.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+});
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

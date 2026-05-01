@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard Entreprise{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1><i class="fas fa-building"></i> Dashboard Entreprise</h1>
+        <p>Gerer votre activite et vos employes</p>
+    </div>
+</div>
+
+<section class="section">
+    <div class="container">
+        {% if subscription %}
+        <div style="background: linear-gradient(135deg, var(--primary-lighter), var(--success-light)); padding: 1rem 1.5rem; border-radius: var(--radius-lg); margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <span class="sub-badge active"><i class="fas fa-crown"></i> {{ subscription.name }}</span>
+                <span style="margin-left: 1rem; font-size: 0.875rem; color: var(--text-secondary);">
+                    Expire le {{ current_user.subscription_end.strftime('%d %b %Y') }}
+                </span>
+            </div>
+            <span style="font-size: 0.9375rem; font-weight: 600; color: var(--primary);">
+                {{ subscription.annonce_limit - current_user.announces_month_used }} annonces restantes
+            </span>
+        </div>
+        {% endif %}
+        
+        <div class="stats-grid three-col">
+            <div class="stat-card">
+                <div class="stat-icon primary"><i class="fas fa-briefcase"></i></div>
+                <div class="stat-info">
+                    <span class="stat-value">{{ stats.total_services }}</span>
+                    <span class="stat-label">Services</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon green"><i class="fas fa-calendar-check"></i></div>
+                <div class="stat-info">
+                    <span class="stat-value">{{ stats.total_bookings }}</span>
+                    <span class="stat-label">Reservations</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon orange"><i class="fas fa-clock"></i></div>
+                <div class="stat-info">
+                    <span class="stat-value">{{ stats.pending_bookings }}</span>
+                    <span class="stat-label">En attente</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="quick-actions">
+            <h3><i class="fas fa-bolt"></i> Actions Rapides</h3>
+            <div class="actions-grid">
+                <a href="{{ url_for('add_service') }}" class="action-card">
+                    <i class="fas fa-plus-circle"></i> Ajouter Service
+                </a>
+                <a href="{{ url_for('my_services') }}" class="action-card">
+                    <i class="fas fa-briefcase"></i> Mes Services
+                </a>
+                <a href="{{ url_for('add_annonce') }}" class="action-card">
+                    <i class="fas fa-bullhorn"></i> Nouvelle Annonce
+                </a>
+                <a href="{{ url_for('my_bookings') }}" class="action-card">
+                    <i class="fas fa-calendar-check"></i> Reservations
+                </a>
+                <a href="{{ url_for('my_profile') }}" class="action-card">
+                    <i class="fas fa-user"></i> Mon Profil
+                </a>
+                <a href="{{ url_for('messages') }}" class="action-card">
+                    <i class="fas fa-comment-dots"></i> Messages
+                </a>
+            </div>
+        </div>
+        
+        <div class="recent-section">
+            <h3><i class="fas fa-calendar-check"></i> Reservations Recentes</h3>
+            {% if recent_bookings %}
+                <div class="bookings-list">
+                    {% for booking in recent_bookings %}
+                    <div class="booking-card compact">
+                        <div class="booking-header">
+                            <div class="booking-service">
+                                <h4><a href="{{ url_for('service_detail', id=booking.service.id) }}">{{ booking.service.title }}</a></h4>
+                                <span class="service-category">{{ booking.service.category }}</span>
+                            </div>
+                            <span class="booking-status status-{{ booking.status }}">{{ booking.status }}</span>
+                        </div>
+                        <div class="booking-body">
+                            <div class="booking-meta">
+                                <span><i class="fas fa-user"></i> {{ booking.client.full_name }}</span>
+                                <span><i class="fas fa-calendar"></i> {{ booking.created_at.strftime('%d %b %Y') }}</span>
+                            </div>
+                        </div>
+                        {% if booking.status == 'pending' %}
+                        <div class="booking-actions">
+                            <form action="{{ url_for('update_booking', id=booking.id) }}" method="POST">
+                                <input type="hidden" name="status" value="accepted">
+                                <button type="submit" class="btn btn-sm btn-success">Accepter</button>
+                            </form>
+                            <form action="{{ url_for('update_booking', id=booking.id) }}" method="POST">
+                                <input type="hidden" name="status" value="rejected">
+                                <button type="submit" class="btn btn-sm btn-danger">Refuser</button>
+                            </form>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state small">
+                    <i class="fas fa-inbox"></i>
+                    <h3>Aucune reservation</h3>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

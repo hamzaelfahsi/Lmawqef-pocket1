@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin - Badges{% endblock %}
+
+{% block content %}
+<style>.admin-main { margin-left: 260px; padding: 2rem; min-height: calc(100vh - 72px); background: var(--bg-body); }
+@media (max-width: 768px) { .admin-main { margin-left: 0; padding: 1rem; } }</style>
+
+<div class="admin-main">
+    <h1 style="font-size: 1.75rem; font-weight: 800; margin-bottom: 1.5rem;"><i class="fas fa-award" style="color: var(--primary);"></i> Gamification - Badges</h1>
+
+    <div class="card" style="padding: 2rem; margin-bottom: 2rem;">
+        <h3 style="margin-bottom: 1.25rem;"><i class="fas fa-plus-circle" style="color: var(--primary);"></i> Add New Badge</h3>
+        <form method="POST" action="{{ url_for('admin_badges') }}">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                <div class="form-group"><label>Name</label><input type="text" name="name" class="form-input" required></div>
+                <div class="form-group"><label>Slug</label><input type="text" name="slug" class="form-input" required></div>
+                <div class="form-group"><label>Icon (fa-*)</label><input type="text" name="icon" class="form-input" value="fa-award"></div>
+                <div class="form-group"><label>Color</label><input type="color" name="color" class="form-input" value="#f59e0b" style="height: 44px;"></div>
+                <div class="form-group"><label>Condition Type</label>
+                    <select name="condition_type" class="form-select">
+                        <option value="bookings_count">Bookings Count</option>
+                        <option value="reviews_count">Reviews Count</option>
+                        <option value="rating">Rating</option>
+                        <option value="services_count">Services Count</option>
+                        <option value="points">Points</option>
+                        <option value="response_time">Response Time (min)</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Condition Value</label><input type="number" name="condition_value" class="form-input" value="1"></div>
+                <div class="form-group"><label>Points Reward</label><input type="number" name="points_reward" class="form-input" value="0"></div>
+            </div>
+            <div class="form-group"><label>Description</label><input type="text" name="description" class="form-input" required></div>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i> Add Badge</button>
+        </form>
+    </div>
+
+    <h3 style="margin-bottom: 1.25rem;">Existing Badges</h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem;">
+        {% for badge in badges %}
+        <div class="card" style="padding: 1.5rem; text-align: center;">
+            <div style="width: 56px; height: 56px; border-radius: 50%; background: {{ badge.color }}20; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.5rem; color: {{ badge.color }};">
+                <i class="fas {{ badge.icon }}"></i>
+            </div>
+            <h4 style="font-size: 1.0625rem; font-weight: 700;">{{ badge.name }}</h4>
+            <p style="font-size: 0.8125rem; color: var(--text-muted); margin-bottom: 0.5rem;">{{ badge.description }}</p>
+            <span style="display: inline-block; background: var(--gray-100); padding: 0.25rem 0.75rem; border-radius: var(--radius-full); font-size: 0.75rem; font-weight: 600; color: var(--text-muted);">
+                {{ badge.condition_type }} >= {{ badge.condition_value }}
+            </span>
+            <p style="font-size: 0.8125rem; color: var(--primary); font-weight: 700; margin-top: 0.5rem;">+{{ badge.points_reward }} points</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

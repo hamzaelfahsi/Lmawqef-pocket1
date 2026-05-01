@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}Lmawqef Protect - Assurance{% endblock %}
+
+{% block content %}
+<section class="hero" style="min-height: 300px; padding: 4rem 0 2rem;">
+    <div class="hero-content">
+        <h1 class="hero-title">Lmawqef <span class="highlight">Protect</span></h1>
+        <p class="hero-subtitle">Assurance pour vos services - Tranquillite garantie</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container" style="max-width: 800px;">
+        {% if user and user.insurance_active %}
+        <div class="card" style="padding: 2rem; background: linear-gradient(135deg, var(--success-light), #d1fae5); border: 1px solid var(--success); margin-bottom: 2rem;">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <i class="fas fa-shield-alt" style="font-size: 3rem; color: var(--success);"></i>
+                <div>
+                    <h3 style="color: #065f46; margin-bottom: 0.25rem;">Assurance Active</h3>
+                    <p style="color: #065f46; font-weight: 500;">Votre assurance Lmawqef Protect est active jusqu'au <strong>{{ user.insurance_expires.strftime('%d %b %Y') }}</strong></p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 3rem;">
+            <div class="value-card">
+                <div class="value-icon"><i class="fas fa-shield-alt"></i></div>
+                <h3>Garantie Service</h3>
+                <p>Si le worker n'execute pas le service = remboursement integral</p>
+            </div>
+            <div class="value-card">
+                <div class="value-icon"><i class="fas fa-user-shield"></i></div>
+                <h3>Remplacement</h3>
+                <p>Nous trouvons un remplacant gratuitement si probleme</p>
+            </div>
+            <div class="value-card">
+                <div class="value-icon"><i class="fas fa-money-bill-wave"></i></div>
+                <h3>Remboursement</h3>
+                <p>Remboursement sous 48h en cas de litige</p>
+            </div>
+            <div class="value-card">
+                <div class="value-icon"><i class="fas fa-headset"></i></div>
+                <h3>Mediation</h3>
+                <p>Notre equipe medie les conflits clients-workers</p>
+            </div>
+        </div>
+
+        <div class="card" style="padding: 2.5rem; text-align: center;">
+            <h2 style="margin-bottom: 1rem;"><i class="fas fa-shield-alt" style="color: var(--primary);"></i> Activer Lmawqef Protect</h2>
+            <p style="font-size: 1.125rem; color: var(--text-secondary); margin-bottom: 1.5rem;">Pour seulement <strong style="color: var(--primary); font-size: 1.5rem;">{{ "%.0f"|format(config.insurance_price) }} MAD/mois</strong>, assurez tous vos services</p>
+            <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 2rem; text-align: left; max-width: 500px; margin-left: auto; margin-right: auto;">
+                <li style="display: flex; align-items: center; gap: 0.75rem; font-size: 1rem; color: var(--text-secondary);"><i class="fas fa-check-circle" style="color: var(--success);"></i> Garantie satisfaction ou remboursement</li>
+                <li style="display: flex; align-items: center; gap: 0.75rem; font-size: 1rem; color: var(--text-secondary);"><i class="fas fa-check-circle" style="color: var(--success);"></i> Remplacement worker gratuit</li>
+                <li style="display: flex; align-items: center; gap: 0.75rem; font-size: 1rem; color: var(--text-secondary);"><i class="fas fa-check-circle" style="color: var(--success);"></i> Support prioritaire 24/7</li>
+                <li style="display: flex; align-items: center; gap: 0.75rem; font-size: 1rem; color: var(--text-secondary);"><i class="fas fa-check-circle" style="color: var(--success);"></i> Mediation professionnelle</li>
+            </ul>
+            {% if session.user_id %}
+            <form method="POST" action="{{ url_for('process_payment') }}">
+                <input type="hidden" name="type" value="insurance">
+                <button type="submit" class="btn btn-primary btn-lg"><i class="fas fa-shield-alt"></i> Activer {{ "%.0f"|format(config.insurance_price) }} MAD/mois</button>
+            </form>
+            {% else %}
+            <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg"><i class="fas fa-sign-in-alt"></i> Connectez-vous pour activer</a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

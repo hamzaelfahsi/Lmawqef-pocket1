@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+
+{% block title %}Messages{% endblock %}
+
+{% block content %}
+<section class="section" style="padding-top: 1.5rem;">
+    <div class="container">
+        <div class="messages-container">
+            <!-- Conversations Sidebar -->
+            <div class="conversations-sidebar">
+                <div class="conversations-header">
+                    <h2><i class="fas fa-comment-dots" style="color: var(--primary); margin-right: 0.5rem;"></i>Messages</h2>
+                </div>
+                
+                {% if conversations %}
+                    {% for conv in conversations %}
+                    <a href="{{ url_for('messages', with=conv.user.id) }}" 
+                       class="conversation-item {% if selected_user and selected_user.id == conv.user.id %}active{% endif %}">
+                        <div class="conversation-avatar">
+                            {% if conv.user.avatar and conv.user.avatar != 'default-avatar.png' %}
+                                <img src="{{ url_for('static', filename=conv.user.avatar) }}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
+                            {% else %}
+                                {{ conv.user.full_name[0] }}
+                            {% endif %}
+                        </div>
+                        <div class="conversation-info">
+                            <h4>{{ conv.user.full_name }}</h4>
+                            <p>{{ conv.last_message.content[:40] if conv.last_message else 'No messages yet' }}...</p>
+                        </div>
+                        <div class="conversation-meta">
+                            <span class="time">{{ conv.last_message.created_at.strftime('%H:%M') if conv.last_message else '' }}</span>
+                            {% if conv.unread > 0 %}
+                            <span class="unread-count">{{ conv.unread }}</span>
+                            {% endif %}
+                        </div>
+                    </a>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state small">
+                        <i class="fas fa-comment-slash"></i>
+                        <h3>No conversations yet</h3>
+                        <p>Start a conversation by booking a service</p>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Chat Area -->
+            <div class="chat-area">
+                {% if selected_user %}
+                <div class="chat-header">
+                    <div class="conversation-avatar">
+                        {% if selected_user.avatar and selected_user.avatar != 'default-avatar.png' %}
+                            <img src="{{ url_for('static', filename=selected_user.avatar) }}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
+                        {% else %}
+                            {{ selected_user.full_name[0] }}
+                        {% endif %}
+                    </div>
+                    <div>
+                        <h3>{{ selected_user.full_name }}</h3>
+                        <span style="font-size:0.8125rem;color:var(--text-muted);">{{ selected_user.city }}</span>
+                    </div>
+                </div>
+                
+                <div class="chat-messages" id="chatMessages">
+                    {% if messages_list %}
+                        {% for msg in messages_list %}
+                        <div class="message-bubble {% if msg.sender_id == session.user_id %}sent{% else %}received{% endif %}" data-id="{{ msg.id }}">
+                            {{ msg.content }}
+                            <span class="time">{{ msg.created_at.strftime('%H:%M') }}</span>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div style="text-align:center; padding:3rem; color:var(--text-muted);">
+                            <i class="fas fa-paper-plane" style="font-size:2rem; margin-bottom:0.5rem;"></i>
+                            <p>Send your first message</p>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="chat-input-area">
+                    <input type="text" class="chat-input" id="chatInput" placeholder="Type your message..." 
+                           data-receiver="{{ selected_user.id }}">
+                    <button type="button" class="btn btn-primary" id="sendBtn" onclick="sendMessage()">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+                {% else %}
+                <div style="display:flex; align-items:center; justify-content:center; flex-direction:column; height:100%; color:var(--text-muted); gap:1rem;">
+                    <i class="fas fa-comments" style="font-size:4rem; opacity:0.3;"></i>
+                    <p style="font-size:1.125rem; font-weight:500;">Select a conversation to start messaging</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+{% if selected_user %}
+<script>
+const chatMessages = document.getElementById('chatMessages');
+const chatInput = document.getElementById('chatInput');
+const receiverId = chatInput.dataset.receiver;
+let lastMessageId = {{ messages_list[-1].id if messages_list else 0 }};
+
+// Scroll to bottom
+chatMessages.scrollTop = chatMessages.scrollHeight;
+
+function sendMessage() {
+    const content = chatInput.value.trim();
+    if (!content) return;
+    
+    fetch('{{ url_for("send_message") }}', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: 'receiver_id=' + receiverId + '&content=' + encodeURIComponent(content)
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            chatInput.value = '';
+            appendMessage(data.message);
+        }
+    });
+}
+
+function appendMessage(msg) {
+    const div = document.createElement('div');
+    div.className = 'message-bubble sent';
+    div.innerHTML = msg.content + '<span class="time">' + msg.created_at + '</span>';
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    lastMessageId = msg.id;
+}
+
+chatInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') sendMessage();
+});
+
+// Poll for new messages every 3 seconds
+setInterval(function() {
+    fetch('{{ url_for("poll_messages") }}?with=' + receiverId + '&last_id=' + lastMessageId)
+    .then(r => r.json())
+    .then(data => {
+        data.messages.forEach(function(msg) {
+            const div = document.createElement('div');
+            div.className = msg.is_sender ? 'message-bubble sent' : 'message-bubble received';
+            div.innerHTML = msg.content + '<span class="time">' + msg.created_at + '</span>';
+            chatMessages.appendChild(div);
+            lastMessageId = msg.id;
+        });
+        if (data.messages.length > 0) {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+    });
+}, 3000);
+</script>
+{% endif %}
+{% endblock %}

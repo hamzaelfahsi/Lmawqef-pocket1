@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Workers{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div class="container">
+        <h1><i class="fas fa-users"></i> Find Workers</h1>
+        <p>Browse skilled professionals across Morocco</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <!-- Filters -->
+        <div class="filters-card">
+            <form action="{{ url_for('workers') }}" method="GET" class="filters-form">
+                <div class="filter-group">
+                    <label><i class="fas fa-map-marker-alt"></i> City</label>
+                    <select name="city" class="form-select">
+                        <option value="">All Cities</option>
+                        {% for c in cities %}
+                        <option value="{{ c }}" {% if city == c %}selected{% endif %}>{{ c }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label><i class="fas fa-tools"></i> Skill</label>
+                    <input type="text" name="skill" value="{{ skill }}" placeholder="Search by skill..." class="form-input">
+                </div>
+
+                <div class="filter-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-filter"></i> Filter
+                    </button>
+                    <a href="{{ url_for('workers') }}" class="btn btn-outline">
+                        <i class="fas fa-undo"></i> Reset
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Workers Grid -->
+        <div class="workers-grid">
+            {% for worker in workers.items %}
+            <div class="worker-card">
+                <div class="worker-avatar">{{ worker.full_name[0] }}</div>
+                <h3 class="worker-name">{{ worker.full_name }}</h3>
+                <p class="worker-city"><i class="fas fa-map-marker-alt"></i> {{ worker.city }}</p>
+                <div class="worker-rating">
+                    {% set rating = worker.average_rating() %}
+                    {% for i in range(1, 6) %}
+                        {% if i <= rating %}
+                            <i class="fas fa-star"></i>
+                        {% elif i - 0.5 <= rating %}
+                            <i class="fas fa-star-half-alt"></i>
+                        {% else %}
+                            <i class="far fa-star"></i>
+                        {% endif %}
+                    {% endfor %}
+                    <span>{{ rating }} ({{ worker.review_count() }} reviews)</span>
+                </div>
+                {% if worker.skills %}
+                <p class="worker-skills">{{ worker.skills[:60] }}{% if worker.skills|length > 60 %}...{% endif %}</p>
+                {% endif %}
+                <a href="{{ url_for('profile', id=worker.id) }}" class="btn btn-outline btn-sm">View Profile</a>
+            </div>
+            {% else %}
+            <div class="empty-state full-width">
+                <i class="fas fa-search"></i>
+                <h3>No workers found</h3>
+                <p>Try adjusting your filters.</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if workers.pages > 1 %}
+        <div class="pagination">
+            {% if workers.has_prev %}
+            <a href="{{ url_for('workers', page=workers.prev_num, city=city, skill=skill) }}" class="page-link">
+                <i class="fas fa-chevron-left"></i> Previous
+            </a>
+            {% endif %}
+
+            {% for page_num in workers.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                {% if page_num %}
+                    {% if page_num == workers.page %}
+                    <span class="page-link active">{{ page_num }}</span>
+                    {% else %}
+                    <a href="{{ url_for('workers', page=page_num, city=city, skill=skill) }}" class="page-link">{{ page_num }}</a>
+                    {% endif %}
+                {% else %}
+                    <span class="page-link dots">...</span>
+                {% endif %}
+            {% endfor %}
+
+            {% if workers.has_next %}
+            <a href="{{ url_for('workers', page=workers.next_num, city=city, skill=skill) }}" class="page-link">
+                Next <i class="fas fa-chevron-right"></i>
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

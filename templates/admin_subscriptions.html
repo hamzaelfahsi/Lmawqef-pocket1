@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin - Subscriptions{% endblock %}
+
+{% block content %}
+<style>.admin-main { margin-left: 260px; padding: 2rem; min-height: calc(100vh - var(--navbar-height)); background: var(--bg-body); }
+@media (max-width: 768px) { .admin-main { margin-left: 0; padding: 1rem; } }</style>
+
+<div class="admin-main">
+    <h1 style="font-size: 1.75rem; font-weight: 800; margin-bottom: 1.5rem;"><i class="fas fa-crown" style="color: var(--primary);"></i> Manage Subscriptions</h1>
+    
+    <div class="card" style="padding: 2rem; margin-bottom: 2rem;">
+        <h3 style="margin-bottom: 1.25rem;"><i class="fas fa-plus-circle" style="color: var(--primary);"></i> Add New Plan</h3>
+        <form method="POST" action="{{ url_for('add_subscription_plan') }}">
+            <div class="form-row two-col">
+                <div class="form-group"><label>Name</label><input type="text" name="name" class="form-input" required></div>
+                <div class="form-group"><label>Slug</label><input type="text" name="slug" class="form-input" required></div>
+            </div>
+            <div class="form-row two-col">
+                <div class="form-group"><label>Price (MAD)</label><input type="number" name="price" class="form-input" step="0.01" required></div>
+                <div class="form-group"><label>Duration (days)</label><input type="number" name="duration_days" class="form-input" required></div>
+            </div>
+            <div class="form-row two-col">
+                <div class="form-group"><label>Annonce Limit / Month</label><input type="number" name="annonce_limit" class="form-input" value="0"></div>
+                <div class="form-group"><label>Target Type</label>
+                    <select name="target_type" class="form-select">
+                        <option value="entreprise">Entreprise</option>
+                        <option value="autoentrepreneur">Auto-Entrepreneur</option>
+                        <option value="freelance">Freelance</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group"><label>Features (comma separated)</label><input type="text" name="features" class="form-input" placeholder='["Feature 1", "Feature 2"]'></div>
+            <div class="form-group"><label>Description</label><textarea name="description" class="form-textarea" rows="2"></textarea></div>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i> Add Plan</button>
+        </form>
+    </div>
+    
+    <h3 style="margin-bottom: 1.25rem;">Existing Plans</h3>
+    <div class="services-grid">
+        {% for plan in plans %}
+        <div class="card" style="padding: 1.5rem;">
+            <h4 style="font-size: 1.125rem; font-weight: 700; margin-bottom: 0.5rem;">{{ plan.name }}</h4>
+            <p style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.75rem;">{{ plan.description or 'No description' }}</p>
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem;">
+                <span class="sub-badge {% if plan.is_active %}active{% else %}expired{% endif %}">{{ 'Active' if plan.is_active else 'Inactive' }}</span>
+                <span class="sub-badge free">{{ plan.target_type }}</span>
+            </div>
+            <p style="font-size: 1rem; font-weight: 700; color: var(--primary); margin-bottom: 0.5rem;">{{ "%.0f"|format(plan.price) }} MAD / {{ plan.duration_days }} days</p>
+            <p style="font-size: 0.875rem; color: var(--text-secondary);"><i class="fas fa-bullhorn"></i> {{ plan.annonce_limit }} announces/month</p>
+            
+            <form method="POST" action="{{ url_for('edit_subscription_plan', id=plan.id) }}" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-light);">
+                <input type="hidden" name="name" value="{{ plan.name }}">
+                <input type="hidden" name="description" value="{{ plan.description or '' }}">
+                <input type="hidden" name="price" value="{{ plan.price }}">
+                <input type="hidden" name="duration_days" value="{{ plan.duration_days }}">
+                <input type="hidden" name="annonce_limit" value="{{ plan.annonce_limit }}">
+                <input type="hidden" name="features" value="{{ plan.features or '' }}">
+                <input type="hidden" name="target_type" value="{{ plan.target_type }}">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="is_active" {% if plan.is_active %}checked{% endif %}> Active
+                    </label>
+                    <button type="submit" class="btn btn-sm btn-primary">Update</button>
+                </div>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <h3 style="margin: 2rem 0 1.25rem;">Active Subscribers</h3>
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead><tr><th>User</th><th>Plan</th><th>Start</th><th>End</th><th>Annonces Used</th></tr></thead>
+            <tbody>
+                {% for sub in active_subs %}
+                <tr>
+                    <td>{{ sub.full_name }} ({{ sub.user_type }})</td>
+                    <td>{{ sub.subscription_plan.name }}</td>
+                    <td>{{ sub.subscription_start.strftime('%d %b') if sub.subscription_start else '-' }}</td>
+                    <td>{{ sub.subscription_end.strftime('%d %b') if sub.subscription_end else '-' }}</td>
+                    <td>{{ sub.announces_month_used }} / {{ sub.subscription_plan.annonce_limit }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

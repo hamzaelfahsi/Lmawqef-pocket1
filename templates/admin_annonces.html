@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin - Annonces{% endblock %}
+
+{% block content %}
+<style>.admin-main { margin-left: 260px; padding: 2rem; min-height: calc(100vh - var(--navbar-height)); background: var(--bg-body); }
+@media (max-width: 768px) { .admin-main { margin-left: 0; padding: 1rem; } }</style>
+
+<div class="admin-main">
+    <h1 style="font-size: 1.75rem; font-weight: 800; margin-bottom: 1.5rem;"><i class="fas fa-bullhorn" style="color: var(--primary);"></i> Manage Annonces</h1>
+    
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead><tr><th>ID</th><th>Title</th><th>Type</th><th>Author</th><th>City</th><th>Paid</th><th>Views</th><th>Date</th><th>Actions</th></tr></thead>
+            <tbody>
+                {% for a in annonces.items %}
+                <tr>
+                    <td>{{ a.id }}</td>
+                    <td><a href="{{ url_for('annonce_detail', id=a.id) }}" target="_blank">{{ a.title[:40] }}</a></td>
+                    <td><span class="annonce-type-badge {{ a.type }}">{{ a.type }}</span></td>
+                    <td>{{ a.author.full_name }}</td>
+                    <td>{{ a.city or '-' }}</td>
+                    <td>{% if a.is_paid %}<i class="fas fa-check-circle" style="color: var(--success);"></i>{% else %}<i class="fas fa-times-circle" style="color: var(--danger);"></i>{% endif %}</td>
+                    <td>{{ a.views_count }}</td>
+                    <td>{{ a.created_at.strftime('%d %b') }}</td>
+                    <td>
+                        <form action="{{ url_for('admin_delete_annonce', id=a.id) }}" method="POST" onsubmit="return confirm('Delete?');">
+                            <button type="submit" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    {% if annonces.pages > 1 %}
+    <div class="pagination" style="margin-top: 1.5rem;">
+        {% for page_num in annonces.iter_pages(left_edge=2, left_current=2, right_current=2, right_edge=2) %}
+            {% if page_num %}<a href="{{ url_for('admin_annonces', page=page_num) }}" class="page-link {% if page_num == annonces.page %}active{% endif %}">{{ page_num }}</a>
+            {% else %}<span class="page-link dots">...</span>{% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

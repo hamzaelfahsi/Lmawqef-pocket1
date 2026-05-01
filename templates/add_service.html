@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Add Service{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div class="container">
+        <h1><i class="fas fa-plus-circle"></i> Add New Service</h1>
+        <p>List your service and start getting clients</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="form-card max-width">
+            <form method="POST" action="{{ url_for('add_service') }}">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="title">Service Title <span class="required">*</span></label>
+                        <input type="text" id="title" name="title" required class="form-input" placeholder="e.g., Professional Web Development">
+                    </div>
+                </div>
+
+                <div class="form-row two-col">
+                    <div class="form-group">
+                        <label for="category">Category <span class="required">*</span></label>
+                        <select id="category" name="category" required class="form-select">
+                            <option value="">Select Category</option>
+                            {% for cat in categories %}
+                            <option value="{{ cat }}">{{ cat }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="city">City <span class="required">*</span></label>
+                        <select id="city" name="city" required class="form-select">
+                            <option value="">Select City</option>
+                            {% for c in cities %}
+                            <option value="{{ c }}">{{ c }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="price">Price (MAD) <span class="required">*</span></label>
+                        <input type="number" id="price" name="price" required min="0" step="0.01" class="form-input" placeholder="e.g., 500">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="description">Description <span class="required">*</span></label>
+                        <textarea id="description" name="description" rows="6" required class="form-textarea" placeholder="Describe your service in detail... What do you offer? What are your qualifications?"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-plus-circle"></i> Add Service
+                    </button>
+                    <a href="{{ url_for('my_services') }}" class="btn btn-outline">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}

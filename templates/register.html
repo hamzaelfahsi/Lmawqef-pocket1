@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block title %}Register{% endblock %}
+
+{% block content %}
+<section class="auth-section">
+    <div class="auth-container">
+        <div class="auth-card wide">
+            <div class="auth-header">
+                <div class="auth-logo">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+                <h1>Create Account</h1>
+                <p>Join Lmawqef Pocket today</p>
+            </div>
+
+            <form method="POST" action="{{ url_for('register') }}" class="auth-form">
+                <div class="form-row two-col">
+                    <div class="form-group">
+                        <label for="username"><i class="fas fa-user"></i> Username <span class="required">*</span></label>
+                        <input type="text" id="username" name="username" required class="form-input" placeholder="Choose a username">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email"><i class="fas fa-envelope"></i> Email <span class="required">*</span></label>
+                        <input type="email" id="email" name="email" required class="form-input" placeholder="your@email.com">
+                    </div>
+                </div>
+
+                <div class="form-row two-col">
+                    <div class="form-group">
+                        <label for="password"><i class="fas fa-lock"></i> Password <span class="required">*</span></label>
+                        <div class="password-input">
+                            <input type="password" id="password" name="password" required minlength="6" class="form-input" placeholder="Min 6 characters">
+                            <button type="button" class="toggle-password" onclick="togglePassword('password')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirm_password"><i class="fas fa-lock"></i> Confirm Password <span class="required">*</span></label>
+                        <div class="password-input">
+                            <input type="password" id="confirm_password" name="confirm_password" required class="form-input" placeholder="Confirm password">
+                            <button type="button" class="toggle-password" onclick="togglePassword('confirm_password')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row two-col">
+                    <div class="form-group">
+                        <label for="full_name"><i class="fas fa-id-card"></i> Full Name <span class="required">*</span></label>
+                        <input type="text" id="full_name" name="full_name" required class="form-input" placeholder="Your full name">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone"><i class="fas fa-phone"></i> Phone <span class="required">*</span></label>
+                        <input type="tel" id="phone" name="phone" required class="form-input" placeholder="+212 6XX-XXXXXX">
+                    </div>
+                </div>
+
+                <div class="form-row two-col">
+                    <div class="form-group">
+                        <label for="city"><i class="fas fa-map-marker-alt"></i> City <span class="required">*</span></label>
+                        <select id="city" name="city" required class="form-select">
+                            <option value="">Select City</option>
+                            {% for c in cities %}
+                            <option value="{{ c }}">{{ c }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="user_type"><i class="fas fa-user-tag"></i> Account Type <span class="required">*</span></label>
+                        <select id="user_type" name="user_type" required class="form-select" onchange="toggleWorkerFields()">
+                            <option value="">Select Type</option>
+                            <option value="client">Client - I need services</option>
+                            <option value="worker">Worker - I offer services</option>
+                            <option value="entreprise">Entreprise - Workforce company</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row" id="skills-row" style="display: none;">
+                    <div class="form-group">
+                        <label for="skills"><i class="fas fa-tools"></i> Skills</label>
+                        <input type="text" id="skills" name="skills" class="form-input" placeholder="e.g., Web Development, Plumbing, Painting">
+                        <small>Separate skills with commas</small>
+                    </div>
+                </div>
+
+                <div class="form-row" id="worker-subtype-row" style="display: none;">
+                    <div class="form-group">
+                        <label for="worker_subtype"><i class="fas fa-user-tie"></i> Worker Status</label>
+                        <select id="worker_subtype" name="worker_subtype" class="form-select">
+                            <option value="">Select Status</option>
+                            <option value="autoentrepreneur">Auto-Entrepreneur</option>
+                            <option value="freelance">Freelance</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row" id="entreprise-row" style="display: none;">
+                    <div class="form-group">
+                        <label for="company_name"><i class="fas fa-building"></i> Company Name</label>
+                        <input type="text" id="company_name" name="company_name" class="form-input" placeholder="Your company name">
+                    </div>
+                </div>
+
+                <div class="form-row two-col" id="entreprise-docs-row" style="display: none;">
+                    <div class="form-group">
+                        <label for="rc_number"><i class="fas fa-file-alt"></i> RC Number</label>
+                        <input type="text" id="rc_number" name="rc_number" class="form-input" placeholder="Registre de Commerce">
+                    </div>
+                    <div class="form-group">
+                        <label for="ice_number"><i class="fas fa-barcode"></i> ICE Number</label>
+                        <input type="text" id="ice_number" name="ice_number" class="form-input" placeholder="Identifiant Commun de l'Entreprise">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="description"><i class="fas fa-align-left"></i> About You</label>
+                        <textarea id="description" name="description" rows="3" class="form-textarea" placeholder="Tell us a bit about yourself..."></textarea>
+                    </div>
+                </div>
+
+                <div class="form-group checkbox-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="terms" required>
+                        <span class="checkmark"></span>
+                        I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block btn-lg">
+                    <i class="fas fa-user-plus"></i> Create Account
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                <p>Already have an account? <a href="{{ url_for('login') }}">Login here</a></p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function togglePassword(id) {
+    const input = document.getElementById(id);
+    const icon = input.parentElement.querySelector('.toggle-password i');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+}
+
+function toggleWorkerFields() {
+    const userType = document.getElementById('user_type').value;
+    const skillsRow = document.getElementById('skills-row');
+    const subtypeRow = document.getElementById('worker-subtype-row');
+    const entrepriseRow = document.getElementById('entreprise-row');
+    const entrepriseDocsRow = document.getElementById('entreprise-docs-row');
+    
+    if (userType === 'worker') {
+        skillsRow.style.display = 'block';
+        subtypeRow.style.display = 'block';
+        document.getElementById('skills').required = true;
+        entrepriseRow.style.display = 'none';
+        entrepriseDocsRow.style.display = 'none';
+    } else if (userType === 'entreprise') {
+        skillsRow.style.display = 'block';
+        subtypeRow.style.display = 'none';
+        entrepriseRow.style.display = 'block';
+        entrepriseDocsRow.style.display = 'grid';
+        document.getElementById('skills').required = true;
+    } else {
+        skillsRow.style.display = 'none';
+        subtypeRow.style.display = 'none';
+        entrepriseRow.style.display = 'none';
+        entrepriseDocsRow.style.display = 'none';
+        document.getElementById('skills').required = false;
+    }
+}
+</script>
+{% endblock %}

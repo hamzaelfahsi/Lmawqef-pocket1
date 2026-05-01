@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block title %}Abonnements{% endblock %}
+
+{% block content %}
+<section class="hero" style="min-height: 300px; padding: 4rem 0 2rem;">
+    <div class="hero-content">
+        <h1 class="hero-title">Abonnements <span class="highlight">PRO</span></h1>
+        <p class="hero-subtitle">Unlock unlimited announces, featured profiles, and premium visibility</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        {% if current_user and current_user.has_active_subscription() %}
+        <div class="card" style="padding: 1.5rem; margin-bottom: 2rem; background: linear-gradient(135deg, var(--success-light), #d1fae5); border: 1px solid var(--success);">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <h3 style="color: #065f46; margin-bottom: 0.25rem;"><i class="fas fa-crown"></i> Abonnement Actif</h3>
+                    <p style="color: #065f46; font-weight: 500;">
+                        Plan: <strong>{{ current_user.subscription_plan.name }}</strong> | 
+                        Expire le: <strong>{{ current_user.subscription_end.strftime('%d %b %Y') }}</strong> |
+                        Annonces restantes: <strong>{{ current_user.get_monthly_annonce_limit() - current_user.announces_month_used }}</strong>
+                    </p>
+                </div>
+                <a href="{{ url_for('cancel_subscription') }}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?');">
+                    <i class="fas fa-times"></i> Annuler
+                </a>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="section-header">
+            <h2 class="section-title">Choose Your Plan</h2>
+            <p class="section-subtitle">Select the plan that best fits your professional needs</p>
+        </div>
+        
+        <div class="plans-grid">
+            {% for plan in plans %}
+            <div class="plan-card {% if plan.price > 0 %}featured{% endif %}">
+                <div class="plan-icon">
+                    <i class="fas fa-{% if plan.target_type == 'entreprise' %}building{% elif plan.target_type == 'autoentrepreneur' %}user-tie{% else %}laptop-code{% endif %}"></i>
+                </div>
+                <h3>{{ plan.name }}</h3>
+                <p class="plan-desc">{{ plan.description }}</p>
+                <div class="plan-price">
+                    {{ "%.0f"|format(plan.price) }} <span>MAD/{{ plan.duration_days }} jours</span>
+                </div>
+                <span style="font-size: 0.8125rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">
+                    {{ plan.target_type }}
+                </span>
+                <ul class="plan-features">
+                    <li><i class="fas fa-check"></i> <strong>{{ plan.annonce_limit }}</strong> annonces/mois</li>
+                    {% if plan.features %}
+                        {% for feature in plan.features|replace('[','')|replace(']','')|replace('"','')|split(',') %}
+                        <li><i class="fas fa-check"></i> {{ feature }}</li>
+                        {% endfor %}
+                    {% endif %}
+                    <li><i class="fas fa-check"></i> Support inclus</li>
+                </ul>
+                {% if current_user %}
+                    {% if current_user.has_active_subscription() and current_user.subscription_plan_id == plan.id %}
+                        <button class="btn btn-ghost btn-lg btn-block" disabled><i class="fas fa-check"></i> Actif</button>
+                    {% else %}
+                        <a href="{{ url_for('subscribe_plan', plan_id=plan.id) }}" class="btn btn-primary btn-lg btn-block">
+                            <i class="fas fa-crown"></i> Souscrire
+                        </a>
+                    {% endif %}
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg btn-block">
+                        <i class="fas fa-sign-in-alt"></i> Se connecter
+                    </a>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="card" style="padding: 2rem; margin-top: 3rem; text-align: center;">
+            <h3 style="margin-bottom: 1rem;"><i class="fas fa-info-circle" style="color: var(--primary);"></i> Comment ca marche?</h3>
+            <div class="steps-grid" style="margin-top: 1.5rem;">
+                <div class="step-card" style="padding: 1.5rem;">
+                    <div class="step-number">1</div>
+                    <h4>Choisissez</h4>
+                    <p style="font-size: 0.875rem;">Selectionnez le plan adapte a votre activite</p>
+                </div>
+                <div class="step-card" style="padding: 1.5rem;">
+                    <div class="step-number">2</div>
+                    <h4>Payez</h4>
+                    <p style="font-size: 0.875rem;">Paiement securise via CMI ou carte bancaire</p>
+                </div>
+                <div class="step-card" style="padding: 1.5rem;">
+                    <div class="step-number">3</div>
+                    <h4>Profitez</h4>
+                    <p style="font-size: 0.875rem;">Acces immediat a toutes les fonctionnalites PRO</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

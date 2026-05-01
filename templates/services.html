@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}Services{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div class="container">
+        <h1><i class="fas fa-briefcase"></i> Browse Services</h1>
+        <p>Find the perfect service for your needs</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <!-- Filters -->
+        <div class="filters-card">
+            <form action="{{ url_for('services') }}" method="GET" class="filters-form">
+                <div class="filter-group">
+                    <label><i class="fas fa-search"></i> Search</label>
+                    <input type="text" name="search" value="{{ search }}" placeholder="Search services..." class="form-input">
+                </div>
+
+                <div class="filter-group">
+                    <label><i class="fas fa-tags"></i> Category</label>
+                    <select name="category" class="form-select">
+                        <option value="">All Categories</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat }}" {% if category == cat %}selected{% endif %}>{{ cat }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label><i class="fas fa-map-marker-alt"></i> City</label>
+                    <select name="city" class="form-select">
+                        <option value="">All Cities</option>
+                        {% for c in cities %}
+                        <option value="{{ c }}" {% if city == c %}selected{% endif %}>{{ c }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="filter-group filter-price">
+                    <label><i class="fas fa-money-bill-wave"></i> Price Range</label>
+                    <div class="price-inputs">
+                        <input type="number" name="min_price" value="{{ min_price }}" placeholder="Min" class="form-input">
+                        <span>-</span>
+                        <input type="number" name="max_price" value="{{ max_price }}" placeholder="Max" class="form-input">
+                    </div>
+                </div>
+
+                <div class="filter-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-filter"></i> Filter
+                    </button>
+                    <a href="{{ url_for('services') }}" class="btn btn-outline">
+                        <i class="fas fa-undo"></i> Reset
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Results Count -->
+        <div class="results-info">
+            <p>Showing <strong>{{ services.items|length }}</strong> of <strong>{{ services.total }}</strong> services</p>
+            {% if session.user_type == 'worker' %}
+            <a href="{{ url_for('add_service') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add Service
+            </a>
+            {% endif %}
+        </div>
+
+        <!-- Services Grid -->
+        <div class="services-grid">
+            {% for service in services.items %}
+            <div class="service-card">
+                <div class="service-image">
+                    <div class="service-image-placeholder">
+                        <i class="fas fa-briefcase"></i>
+                    </div>
+                    <span class="service-category">{{ service.category }}</span>
+                </div>
+                <div class="service-content">
+                    <h3 class="service-title">{{ service.title }}</h3>
+                    <p class="service-desc">{{ service.description[:100] }}{% if service.description|length > 100 %}...{% endif %}</p>
+                    <div class="service-meta">
+                        <span class="service-city"><i class="fas fa-map-marker-alt"></i> {{ service.city }}</span>
+                        <span class="service-price">{{ "%.0f"|format(service.price) }} MAD</span>
+                    </div>
+                    <div class="service-footer">
+                        <div class="service-worker">
+                            <div class="worker-avatar-small">{{ service.worker.full_name[0] }}</div>
+                            <span>{{ service.worker.full_name }}</span>
+                        </div>
+                        <div class="worker-rating">
+                            {% set rating = service.worker.average_rating() %}
+                            {% for i in range(1, 6) %}
+                                {% if i <= rating %}
+                                    <i class="fas fa-star"></i>
+                                {% elif i - 0.5 <= rating %}
+                                    <i class="fas fa-star-half-alt"></i>
+                                {% else %}
+                                    <i class="far fa-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <a href="{{ url_for('service_detail', id=service.id) }}" class="btn btn-primary btn-block">View Details</a>
+                </div>
+            </div>
+            {% else %}
+            <div class="empty-state full-width">
+                <i class="fas fa-search"></i>
+                <h3>No services found</h3>
+                <p>Try adjusting your filters or search terms.</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if services.pages > 1 %}
+        <div class="pagination">
+            {% if services.has_prev %}
+            <a href="{{ url_for('services', page=services.prev_num, search=search, category=category, city=city, min_price=min_price, max_price=max_price) }}" class="page-link">
+                <i class="fas fa-chevron-left"></i> Previous
+            </a>
+            {% endif %}
+
+            {% for page_num in services.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                {% if page_num %}
+                    {% if page_num == services.page %}
+                    <span class="page-link active">{{ page_num }}</span>
+                    {% else %}
+                    <a href="{{ url_for('services', page=page_num, search=search, category=category, city=city, min_price=min_price, max_price=max_price) }}" class="page-link">{{ page_num }}</a>
+                    {% endif %}
+                {% else %}
+                    <span class="page-link dots">...</span>
+                {% endif %}
+            {% endfor %}
+
+            {% if services.has_next %}
+            <a href="{{ url_for('services', page=services.next_num, search=search, category=category, city=city, min_price=min_price, max_price=max_price) }}" class="page-link">
+                Next <i class="fas fa-chevron-right"></i>
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

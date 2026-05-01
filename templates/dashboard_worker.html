@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div class="container">
+        <h1><i class="fas fa-chart-line"></i> Worker Dashboard</h1>
+        <p>Overview of your performance and activity</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon blue"><i class="fas fa-briefcase"></i></div>
+                <div class="stat-info">
+                    <span class="stat-value">{{ stats.total_services }}</span>
+                    <span class="stat-label">Total Services</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
+                <div class="stat-info">
+                    <span class="stat-value">{{ stats.active_services }}</span>
+                    <span class="stat-label">Active Services</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon orange"><i class="fas fa-calendar-check"></i></div>
+                <div class="stat-info">
+                    <span class="stat-value">{{ stats.total_bookings }}</span>
+                    <span class="stat-label">Total Bookings</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon red"><i class="fas fa-clock"></i></div>
+                <div class="stat-info">
+                    <span class="stat-value">{{ stats.pending_bookings }}</span>
+                    <span class="stat-label">Pending Bookings</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon yellow"><i class="fas fa-star"></i></div>
+                <div class="stat-info">
+                    <span class="stat-value">{{ stats.avg_rating }}</span>
+                    <span class="stat-label">Avg Rating</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon purple"><i class="fas fa-comments"></i></div>
+                <div class="stat-info">
+                    <span class="stat-value">{{ stats.total_reviews }}</span>
+                    <span class="stat-label">Reviews</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+            <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
+            <div class="actions-grid">
+                <a href="{{ url_for('add_service') }}" class="action-card">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>Add Service</span>
+                </a>
+                <a href="{{ url_for('my_services') }}" class="action-card">
+                    <i class="fas fa-briefcase"></i>
+                    <span>My Services</span>
+                </a>
+                <a href="{{ url_for('my_bookings') }}" class="action-card">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>Bookings</span>
+                </a>
+                <a href="{{ url_for('my_profile') }}" class="action-card">
+                    <i class="fas fa-user"></i>
+                    <span>Edit Profile</span>
+                </a>
+                <a href="{{ url_for('ai_match') }}" class="action-card">
+                    <i class="fas fa-robot"></i>
+                    <span>AI Match</span>
+                </a>
+                <a href="{{ url_for('availability') }}" class="action-card">
+                    <i class="fas fa-clock"></i>
+                    <span>Availability</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Analytics Charts -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 2rem;">
+            <div class="chart-card" style="background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                <h3 style="margin-bottom: 1rem;"><i class="fas fa-chart-line" style="color: #0D9488;"></i> Monthly Bookings</h3>
+                <canvas id="workerBookingsChart" height="180"></canvas>
+            </div>
+            <div class="chart-card" style="background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                <h3 style="margin-bottom: 1rem;"><i class="fas fa-coins" style="color: #F59E0B;"></i> Monthly Revenue (MAD)</h3>
+                <canvas id="workerRevenueChart" height="180"></canvas>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+        fetch('/api/analytics/dashboard')
+        .then(r => r.json())
+        .then(data => {
+            new Chart(document.getElementById('workerBookingsChart'), {
+                type: 'line',
+                data: { labels: data.months, datasets: [{ label: 'Bookings', data: data.bookings, borderColor: '#0D9488', backgroundColor: 'rgba(13,148,136,0.1)', fill: true, tension: 0.4 }] },
+                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+            });
+            new Chart(document.getElementById('workerRevenueChart'), {
+                type: 'bar',
+                data: { labels: data.months, datasets: [{ label: 'Revenue MAD', data: data.revenue, backgroundColor: '#F59E0B', borderRadius: 6 }] },
+                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+            });
+        });
+        </script>
+
+        <!-- Recent Bookings -->
+        <div class="recent-section">
+            <h3><i class="fas fa-history"></i> Recent Bookings</h3>
+            {% if recent_bookings %}
+            <div class="bookings-list compact">
+                {% for booking in recent_bookings %}
+                <div class="booking-card compact">
+                    <div class="booking-header">
+                        <div class="booking-service">
+                            <h4><a href="{{ url_for('service_detail', id=booking.service.id) }}">{{ booking.service.title }}</a></h4>
+                        </div>
+                        <span class="booking-status status-{{ booking.status }}">
+                            {% if booking.status == 'pending' %}Pending{% elif booking.status == 'accepted' %}Accepted{% elif booking.status == 'rejected' %}Rejected{% else %}Completed{% endif %}
+                        </span>
+                    </div>
+                    <div class="booking-meta">
+                        <span><i class="fas fa-user"></i> {{ booking.client.full_name }}</span>
+                        <span><i class="fas fa-calendar"></i> {{ booking.created_at.strftime('%B %d, %Y') }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <a href="{{ url_for('my_bookings') }}" class="btn btn-outline btn-sm">View All Bookings</a>
+            {% else %}
+            <div class="empty-state small">
+                <i class="fas fa-inbox"></i>
+                <p>No bookings yet.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}
